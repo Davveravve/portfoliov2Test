@@ -1,0 +1,5 @@
+drizzle/
+pnpm-lock.yaml
+.data/
+.next/
+test-results/

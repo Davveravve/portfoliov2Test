@@ -1,0 +1,191 @@
+@import "tailwindcss";
+
+/* ──────────────────────────────────────────────────────────────────────────
+   Design tokens. Premium dark, flat, restrained: near-black warm surfaces,
+   hairline borders, one confident accent. See SPEC.md §5.
+   ────────────────────────────────────────────────────────────────────────── */
+@theme {
+  --color-*: initial;
+  --color-bg: #0b0b0c;
+  --color-surface-1: #121214;
+  --color-surface-2: #18181b;
+  --color-surface-3: #202024;
+  --color-line: rgb(255 255 255 / 0.08);
+  --color-line-strong: rgb(255 255 255 / 0.14);
+  --color-fg: #ededee;
+  --color-fg-muted: #a1a1a8;
+  --color-fg-subtle: #75757d;
+  --color-accent: #ff5b24;
+  --color-accent-hover: #ff7445;
+  --color-accent-fg: #0b0b0c;
+  --color-white: #ffffff;
+  --color-black: #000000;
+  --color-transparent: transparent;
+  --color-current: currentColor;
+
+  /* Status colours are desaturated and only used for small dots/labels. */
+  --color-status-prototype: #8d9ccc;
+  --color-status-in-development: #e0a458;
+  --color-status-released: #7fb58a;
+  --color-status-on-hold: #a1a1a8;
+  --color-status-archived: #6e6e76;
+
+  --font-display: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, "SFMono-Regular", monospace;
+
+  --radius-xs: 2px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+
+  --ease-out: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+
+  --breakpoint-xs: 30rem;
+  --container-page: 90rem; /* 1440px */
+  --container-prose: 42rem;
+
+  --text-display-2xl: clamp(3rem, 13vw, 9.5rem);
+  --text-display-2xl--line-height: 0.86;
+  --text-display-xl: clamp(2.5rem, 6vw, 5.5rem);
+  --text-display-xl--line-height: 0.9;
+  --text-display-lg: clamp(2rem, 4vw, 3.5rem);
+  --text-display-lg--line-height: 0.95;
+  --text-display-md: clamp(1.5rem, 2.4vw, 2.125rem);
+  --text-display-md--line-height: 1;
+  --text-display-sm: 1.25rem;
+  --text-display-sm--line-height: 1.1;
+  --text-label: 0.6875rem; /* 11px mono labels */
+  --text-label--line-height: 1.2;
+
+  --animate-reveal: reveal 0.7s var(--ease-out) both;
+
+  @keyframes reveal {
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+}
+
+/* ── Base ─────────────────────────────────────────────────────────────── */
+@layer base {
+  :root {
+    color-scheme: dark;
+    --gutter: 1rem;
+    --header-h: 3.5rem;
+  }
+  @media (min-width: 48rem) {
+    :root {
+      --gutter: 2rem;
+      --header-h: 4rem;
+    }
+  }
+
+  html {
+    background: var(--color-bg);
+    color: var(--color-fg);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    scroll-padding-top: calc(var(--header-h) + 1rem);
+  }
+
+  body {
+    min-height: 100dvh;
+    background: var(--color-bg);
+    font-size: 1rem;
+    line-height: 1.6;
+  }
+
+  ::selection {
+    background: var(--color-accent);
+    color: var(--color-accent-fg);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+    border-radius: var(--radius-xs);
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    text-wrap: balance;
+  }
+  p {
+    text-wrap: pretty;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    html {
+      scroll-behavior: smooth;
+    }
+  }
+}
+
+/* ── Utilities ────────────────────────────────────────────────────────── */
+
+/* Display type: Archivo, expanded, uppercase, tight. */
+@utility font-display-x {
+  font-family: var(--font-display);
+  font-stretch: 125%;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
+}
+
+/* Mono meta labels. */
+@utility label {
+  font-family: var(--font-mono);
+  font-size: var(--text-label);
+  line-height: var(--text-label--line-height);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+@utility px-gutter {
+  padding-inline: var(--gutter);
+}
+
+@utility hairline {
+  border-color: var(--color-line);
+}
+
+/* Motion: every animated thing opts out under reduced motion. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Reveal-on-scroll (see components/ui/reveal.tsx). Content is visible
+   without JS: the hidden state only applies once JS has marked the root. */
+.js [data-reveal]:not([data-revealed]) {
+  opacity: 0;
+  transform: translateY(12px);
+}
+.js [data-reveal] {
+  transition:
+    opacity 0.7s var(--ease-out),
+    transform 0.7s var(--ease-out);
+  transition-delay: var(--reveal-delay, 0ms);
+}
+@media (prefers-reduced-motion: reduce) {
+  .js [data-reveal]:not([data-revealed]) {
+    opacity: 1;
+    transform: none;
+  }
+}
