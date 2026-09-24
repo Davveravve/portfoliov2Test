@@ -10,10 +10,25 @@ const dot: Record<ProjectStatus, string> = {
   archived: "bg-status-archived",
 };
 
-export function StatusBadge({ status, className }: { status: ProjectStatus; className?: string }) {
+/** Round 6px status dot + label. `mono` for use inside mono rows. Dots are round; LEDs are square. */
+export function StatusBadge({
+  status,
+  variant = "default",
+  className,
+}: {
+  status: ProjectStatus;
+  variant?: "default" | "mono";
+  className?: string;
+}) {
   return (
-    <span className={cn("inline-flex items-center gap-2 text-[13px] text-fg-muted", className)}>
-      <span aria-hidden className={cn("size-1.5 rounded-full", dot[status])} />
+    <span
+      className={cn(
+        "inline-flex items-center gap-2 text-fg-muted",
+        variant === "mono" ? "label" : "text-[13px]",
+        className,
+      )}
+    >
+      <span aria-hidden className={cn("size-1.5 shrink-0 rounded-full", dot[status])} />
       {PROJECT_STATUS_LABEL[status]}
     </span>
   );

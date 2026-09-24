@@ -11,10 +11,11 @@ function isActive(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
+/** Full-height links so the 1px accent underline lands exactly on the header rule. */
 export function NavLinks({ items }: { items: readonly Item[] }) {
   const pathname = usePathname();
   return (
-    <ul className="flex items-center gap-1">
+    <ul className="flex items-center gap-6">
       {items.map((item) => {
         const active = isActive(pathname, item.href);
         return (
@@ -23,8 +24,10 @@ export function NavLinks({ items }: { items: readonly Item[] }) {
               href={item.href}
               aria-current={active ? "page" : undefined}
               className={cn(
-                "inline-flex h-8 items-center rounded-full px-3.5 text-sm tracking-[-0.01em] transition-colors duration-200",
-                active ? "bg-surface-2 text-fg" : "text-fg-muted hover:text-fg",
+                "relative flex h-(--header-h) items-center text-ui transition-colors duration-150",
+                active
+                  ? "text-fg after:absolute after:inset-x-0 after:-bottom-px after:h-px after:bg-accent"
+                  : "text-fg-muted hover:text-fg",
               )}
             >
               {item.label}

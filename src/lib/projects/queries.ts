@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, max, sql } from "drizzle-orm";
+import { and, asc, count, desc, eq, max, min, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import type { Db } from "@/db/create";
 import { media, posts, projects } from "@/db/schema";
@@ -73,4 +73,21 @@ export async function getLatestPosts(db: Db, limit = 6, now = new Date()): Promi
     cover: toAsset(c),
     project,
   }));
+}
+
+/** Number of public posts across all projects. */
+export async function countPublicPosts(db: Db, now = new Date()): Promise<number> {
+  const [row] = await db.select({ n: count() }).from(posts).where(publicPostWhere(now));
+  return row?.n ?? 0;
+}
+
+export async function countProjects(db: Db): Promise<number> {
+  const [row] = await db.select({ n: count() }).from(projects);
+  return row?.n ?? 0;
+}
+
+/** Earliest `startedAt` across projects (ISO date string) or null. */
+export async function earliestProjectStart(db: Db): Promise<string | null> {
+  const [row] = await db.select({ d: min(projects.startedAt) }).from(projects);
+  return row?.d ?? null;
 }

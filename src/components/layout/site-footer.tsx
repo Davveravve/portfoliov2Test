@@ -1,43 +1,68 @@
 import Link from "next/link";
+import { ButtonLink } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
+import { Emphasis } from "@/components/ui/emphasis";
 import { ArrowUpRight } from "@/components/ui/icons";
 import { site } from "@/config/site";
+import { getDb } from "@/db/client";
+import { formatDateMono } from "@/lib/format";
+import { getLatestPosts } from "@/lib/projects/queries";
 
-export function SiteFooter() {
+/** Newest public post for the system line; omitted when the database is unavailable. */
+async function lastLog() {
+  try {
+    const [post] = await getLatestPosts(await getDb(), 1);
+    return post ?? null;
+  } catch {
+    return null;
+  }
+}
+
+export async function SiteFooter() {
   const year = new Date().getFullYear();
   const socials = Object.entries(site.social);
+  const last = await lastLog();
+
   return (
-    <footer className="mt-32 md:mt-48">
+    <footer className="mt-(--space-section)">
       <Container>
-        <div className="grid gap-14 border-t border-line pt-16 pb-14 md:grid-cols-12 md:pt-24">
-          <div className="space-y-8 md:col-span-7">
-            <p className="headline text-display-xl">
-              Let&apos;s build <em>something.</em>
+        <div className="rule-caps" />
+        <div className="grid gap-12 pt-12 pb-12 md:grid-cols-12 md:pt-16 md:pb-16">
+          <div className="md:col-span-7">
+            <p className="max-w-[26ch] headline text-display-lg">
+              <Emphasis text="Let's build something — *or just talk shop.*" />
             </p>
-            <a
-              href={`mailto:${site.email}`}
-              className="group inline-flex items-center gap-2 text-lg tracking-[-0.01em] text-fg-muted transition-colors duration-200 hover:text-fg"
-            >
-              {site.email}
-              <ArrowUpRight
-                size={16}
-                className="transition-transform duration-200 ease-out group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
-              />
-            </a>
+            <div className="mt-6 flex flex-wrap items-center gap-x-8 gap-y-4">
+              <a
+                href={`mailto:${site.email}`}
+                className="group inline-flex items-center gap-2 font-mono text-[15px] text-fg-muted transition-colors duration-150 hover:text-fg"
+              >
+                {site.email}
+                <ArrowUpRight
+                  size={14}
+                  className="transition-transform duration-150 ease-out group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+                />
+              </a>
+              {site.cvUrl && (
+                <ButtonLink href={site.cvUrl} variant="secondary" size="sm" trailingIcon={<ArrowUpRight size={14} />}>
+                  Download CV
+                </ButtonLink>
+              )}
+            </div>
           </div>
 
-          <nav aria-label="Footer" className="grid grid-cols-2 gap-8 md:col-span-4 md:col-start-9">
+          <nav id="footer-nav" aria-label="Footer" className="grid grid-cols-2 gap-8 md:col-span-4 md:col-start-9">
             <div className="space-y-4">
-              <p className="label text-fg-subtle">Site</p>
-              <ul className="space-y-2.5 text-[15px]">
+              <p className="label text-fg-muted">Site</p>
+              <ul className="space-y-2.5 text-body">
                 <li>
-                  <Link href="/" className="text-fg-muted transition-colors hover:text-fg">
+                  <Link href="/" className="text-fg-muted transition-colors duration-150 hover:text-fg">
                     Home
                   </Link>
                 </li>
                 {site.nav.map((item) => (
                   <li key={item.href}>
-                    <Link href={item.href} className="text-fg-muted transition-colors hover:text-fg">
+                    <Link href={item.href} className="text-fg-muted transition-colors duration-150 hover:text-fg">
                       {item.label}
                     </Link>
                   </li>
@@ -45,17 +70,21 @@ export function SiteFooter() {
               </ul>
             </div>
             <div className="space-y-4">
-              <p className="label text-fg-subtle">Elsewhere</p>
-              <ul className="space-y-2.5 text-[15px]">
+              <p className="label text-fg-muted">Elsewhere</p>
+              <ul className="space-y-2.5 text-body">
                 {socials.map(([name, href]) => (
                   <li key={name}>
                     <a
                       href={href}
                       rel="me noopener"
                       target="_blank"
-                      className="text-fg-muted capitalize transition-colors hover:text-fg"
+                      className="group inline-flex items-center gap-1.5 text-fg-muted capitalize transition-colors duration-150 hover:text-fg"
                     >
                       {name === "youtube" ? "YouTube" : name}
+                      <ArrowUpRight
+                        size={12}
+                        className="transition-transform duration-150 ease-out group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+                      />
                       <span className="sr-only"> (opens in a new tab)</span>
                     </a>
                   </li>
@@ -65,11 +94,25 @@ export function SiteFooter() {
           </nav>
         </div>
 
-        <div className="flex flex-wrap items-center justify-between gap-4 border-t border-line py-6 text-[13px] text-fg-subtle">
+        {/* System line: three true facts between two hairlines. */}
+        <div className="grid gap-2 border-y border-line py-4 label text-fg-muted sm:grid-cols-3">
           <p>
             © {year} {site.name}
           </p>
-          <p>{site.location}</p>
+          <p className="sm:text-center">{site.location}</p>
+          {last && (
+            <p className="sm:text-right">
+              <Link
+                href={`/projects/${last.project.slug}/${last.slug}`}
+                className="group inline-flex items-center gap-1.5 transition-colors duration-150 hover:text-fg"
+              >
+                Last log {formatDateMono(last.publishedAt)}
+                <span aria-hidden className="transition-transform duration-150 ease-out group-hover:translate-x-0.5">
+                  →
+                </span>
+              </Link>
+            </p>
+          )}
         </div>
       </Container>
     </footer>

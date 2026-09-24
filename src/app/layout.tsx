@@ -20,9 +20,13 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0b0b0c",
+  themeColor: "#0a0a0b",
   colorScheme: "dark",
 };
+
+// The footer reads the newest post from the database, so every route renders
+// on request. Phase 5 replaces this with ISR + on-demand revalidation.
+export const dynamic = "force-dynamic";
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (

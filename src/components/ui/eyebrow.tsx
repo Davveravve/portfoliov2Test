@@ -1,19 +1,15 @@
 import type { ReactNode } from "react";
 import { cn } from "@/lib/cn";
 
-/** Small mono label with an accent dot. Used above headings and as meta. */
-export function Eyebrow({
-  children,
-  className,
-  dot = true,
-}: {
-  children: ReactNode;
-  className?: string;
-  dot?: boolean;
-}) {
+/** 11px mono label. `index` is rendered first in full contrast: "01 — SELECTED WORK". */
+export function Eyebrow({ children, index, className }: { children: ReactNode; index?: string; className?: string }) {
   return (
-    <p className={cn("flex items-center gap-2.5 label text-fg-muted", className)}>
-      {dot && <span aria-hidden className="inline-block size-1 rounded-full bg-accent" />}
+    <p className={cn("label text-fg-muted", className)}>
+      {index && (
+        <>
+          <span className="text-fg">{index}</span> —{" "}
+        </>
+      )}
       {children}
     </p>
   );

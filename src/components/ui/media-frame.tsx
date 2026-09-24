@@ -1,24 +1,32 @@
 import Image from "next/image";
-import type { CSSProperties, ReactNode } from "react";
+import type { CSSProperties, ReactNode, Ref } from "react";
 import { cn } from "@/lib/cn";
+import { formatDimensions } from "@/lib/format";
 import type { MediaAsset } from "@/lib/media";
 import { LazyVideo } from "./lazy-video";
 
 type Props = {
   media: MediaAsset | null;
-  /** CSS aspect ratio, e.g. "16/9". Media is cropped to fill. Override per breakpoint via `className` (e.g. `lg:aspect-[21/9]`). */
+  /** CSS aspect ratio, e.g. "16/9". Override per breakpoint via `className` (e.g. `lg:aspect-[21/9]`). */
   ratio?: string;
+  /** Exact per placement — required. */
   sizes: string;
   priority?: boolean;
   ambient?: boolean;
-  caption?: ReactNode;
+  /** Full-bleed: no side ring, 1px rules top and bottom. The readout bar stays on the grid. */
+  bleed?: boolean;
+  /** Caption/controls rendered UNDER the frame, never on it. `right` defaults to the asset dimensions. */
+  readout?: { left: ReactNode; right?: ReactNode | null };
+  /** Prefixes the readout with "FRAME 01 — ". */
+  frame?: number | string;
   className?: string;
   imgClassName?: string;
+  videoRef?: Ref<HTMLVideoElement>;
 };
 
 /**
- * The one way to show a screenshot or clip: fixed ratio (no layout shift),
- * blur placeholder, hairline border. Falls back to an empty frame.
+ * The one way to show an image or clip: fixed ratio (no layout shift), blur
+ * placeholder, inset hairline ring, nothing drawn on top of the media.
  */
 export function MediaFrame({
   media,
@@ -26,20 +34,37 @@ export function MediaFrame({
   sizes,
   priority,
   ambient,
-  caption,
+  bleed,
+  readout,
+  frame,
   className,
   imgClassName,
+  videoRef,
 }: Props) {
-  const frame = (
+  const box = (
     <div
       className={cn(
-        "relative aspect-(--ratio) overflow-hidden rounded-lg bg-surface-1 ring-1 ring-line ring-inset [&>img]:rounded-[inherit]",
+        "relative aspect-(--ratio) overflow-hidden bg-surface-1",
+        bleed
+          ? "bleed border-y border-line-strong"
+          : "shadow-[inset_0_0_0_1px_var(--color-line)] transition-shadow duration-150 group-hover:shadow-[inset_0_0_0_1px_var(--color-line-strong)]",
         className,
       )}
       style={{ "--ratio": ratio } as CSSProperties}
     >
       {media?.kind === "video" ? (
-        <LazyVideo src={media.url} poster={media.posterUrl} label={media.alt} ambient={ambient} />
+        <>
+          <LazyVideo src={media.url} poster={media.posterUrl} label={media.alt} ambient={ambient} ref={videoRef} />
+          <noscript>
+            <video
+              className="size-full object-cover"
+              controls
+              preload="none"
+              poster={media.posterUrl ?? undefined}
+              src={media.url}
+            />
+          </noscript>
+        </>
       ) : media ? (
         <Image
           src={media.url}
@@ -47,6 +72,7 @@ export function MediaFrame({
           fill
           sizes={sizes}
           priority={priority}
+          fetchPriority={priority ? "high" : undefined}
           unoptimized={media.kind === "gif"}
           placeholder={media.blurDataUrl ? "blur" : "empty"}
           blurDataURL={media.blurDataUrl ?? undefined}
@@ -60,11 +86,24 @@ export function MediaFrame({
     </div>
   );
 
-  if (!caption) return frame;
+  if (!readout) return box;
+
+  const right =
+    readout.right === undefined ? formatDimensions(media?.width ?? null, media?.height ?? null) : readout.right;
+  const prefix =
+    frame === undefined ? null : `Frame ${typeof frame === "number" ? String(frame).padStart(2, "0") : frame} — `;
+
   return (
-    <figure className="space-y-3">
-      {frame}
-      <figcaption className="text-sm text-fg-subtle">{caption}</figcaption>
-    </figure>
+    <div>
+      {box}
+      <div className="flex items-center justify-between gap-6 py-3 meta text-fg-muted">
+        <div className="flex min-w-0 items-center gap-2.5 uppercase">
+          {prefix && <span className="shrink-0">{prefix}</span>}
+          {readout.left}
+        </div>
+        {right && <div className="hidden shrink-0 uppercase md:block">{right}</div>}
+      </div>
+      <div className="rule-caps rule-caps-soft" />
+    </div>
   );
 }

@@ -1,5 +1,5 @@
+import { HeroShowreel } from "@/components/home/hero-showreel";
 import { LatestFeed } from "@/components/home/latest-feed";
-import { Showreel } from "@/components/home/showreel";
 import { ButtonLink } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
 import { Emphasis } from "@/components/ui/emphasis";
@@ -7,102 +7,148 @@ import { Eyebrow } from "@/components/ui/eyebrow";
 import { ArrowRight } from "@/components/ui/icons";
 import { ProjectCard } from "@/components/ui/project-card";
 import { Reveal } from "@/components/ui/reveal";
-import { SectionHeading } from "@/components/ui/section-heading";
+import { SectionRail } from "@/components/ui/section-rail";
 import { TextLink } from "@/components/ui/text-link";
 import { site } from "@/config/site";
 import { getDb } from "@/db/client";
-import { formatMonth } from "@/lib/format";
-import { getFeaturedProjects, getLatestPosts } from "@/lib/projects/queries";
+import { formatDateMono, formatMonthMono, pad } from "@/lib/format";
+import { POST_TYPE_LABEL } from "@/lib/labels";
+import type { MediaAsset } from "@/lib/media";
+import {
+  countProjects,
+  countPublicPosts,
+  earliestProjectStart,
+  getFeaturedProjects,
+  getLatestPosts,
+} from "@/lib/projects/queries";
+import { mediaUrl } from "@/lib/storage";
 
-// Reads live data; Phase 5 moves this to ISR + on-demand revalidation from the admin.
-export const dynamic = "force-dynamic";
+const resolve = (src: string) => (/^https?:\/\//.test(src) || src.startsWith("/") ? src : mediaUrl(src));
 
 export default async function HomePage() {
   const db = await getDb();
-  const [featured, latest] = await Promise.all([getFeaturedProjects(db), getLatestPosts(db, 6)]);
+  const [featured, latest, projectCount, postCount, since] = await Promise.all([
+    getFeaturedProjects(db),
+    getLatestPosts(db, 6),
+    countProjects(db),
+    countPublicPosts(db),
+    earliestProjectStart(db),
+  ]);
   const [lead, ...rest] = featured;
-  const totalUpdates = featured.reduce((n, p) => n + p.updateCount, 0);
-  // Poster for the empty showreel slot: newest post art that isn't the lead card's cover.
-  const showreelPoster = latest.find((p) => p.cover && p.cover.url !== lead?.cover?.url)?.cover ?? lead?.cover ?? null;
-  const since = featured
-    .map((p) => p.startedAt)
-    .filter(Boolean)
-    .sort()[0];
+  const newest = latest[0];
+
+  // Showreel: the configured video, or the newest post cover as a named poster.
+  const { src, poster: posterKey, duration, width, height, ambient } = site.showreel;
+  const video: MediaAsset | null = src
+    ? {
+        url: resolve(src),
+        alt: `${site.name} — showreel`,
+        kind: "video",
+        width,
+        height,
+        blurDataUrl: null,
+        posterUrl: posterKey ? resolve(posterKey) : null,
+      }
+    : null;
+  const fallbackPost = latest.find((p) => p.cover) ?? null;
+  const poster = video?.posterUrl
+    ? { ...video, kind: "image" as const, url: video.posterUrl, posterUrl: null }
+    : (fallbackPost?.cover ?? lead?.cover ?? null);
+  const posterLabel =
+    !video && fallbackPost
+      ? `${fallbackPost.project.title} / ${POST_TYPE_LABEL[fallbackPost.type]}: ${fallbackPost.title}`
+      : null;
 
   const stats = [
-    ["Projects", String(featured.length).padStart(2, "0")],
-    ["Devlog updates", String(totalUpdates)],
-    ["Building since", since ? formatMonth(since) : "—"],
+    ["Projects", pad(projectCount, 2)],
+    ["Updates", pad(postCount, 3)],
+    ["Since", since ? formatMonthMono(since) : "—"],
+    ["Last log", newest ? formatDateMono(newest.publishedAt) : "—"],
   ] as const;
+
+  const logRange = newest
+    ? `Log ${pad(postCount, 3)}–${pad(Math.max(1, postCount - latest.length + 1), 3)} · ${latest.length} of ${postCount}`
+    : undefined;
 
   return (
     <>
       {/* ── Hero ─────────────────────────────────────────────── */}
-      <section aria-labelledby="hero-title" className="pt-14 md:pt-24">
+      <section aria-labelledby="hero-title" className="overflow-x-clip pt-8 md:pt-12">
         <Container>
-          <div className="flex flex-wrap items-center justify-between gap-4">
+          <div className="flex flex-wrap items-end justify-between gap-x-8 gap-y-2 pb-3">
             <Eyebrow>
-              {site.role} — {site.location}
+              {site.role} · {site.location}
             </Eyebrow>
             {site.availability && (
-              <p className="inline-flex items-center gap-2 text-[13px] text-fg-muted">
-                <span aria-hidden className="relative flex size-2">
-                  <span className="absolute inset-0 animate-ping rounded-full bg-status-released/60 motion-reduce:hidden" />
-                  <span className="relative size-2 rounded-full bg-status-released" />
-                </span>
+              <p className="flex items-center gap-2.5 label text-fg-muted">
+                <span aria-hidden className="led led-live" />
                 {site.availability}
               </p>
             )}
           </div>
+          <div className="rule-caps" />
 
-          <h1 id="hero-title" className="mt-10 max-w-[16ch] headline text-display-2xl md:mt-14">
+          <h1 id="hero-title" className="mt-6 headline text-display-2xl md:mt-8">
             <Emphasis text={site.headline} />
           </h1>
+        </Container>
 
-          <div className="mt-10 grid items-end gap-8 md:mt-14 md:grid-cols-12">
-            <p className="max-w-md text-[17px] leading-relaxed text-fg-muted md:col-span-6 lg:col-span-5">
-              {site.intro}
-            </p>
-            <div className="flex flex-wrap gap-3 md:col-span-6 md:justify-end lg:col-span-7">
-              <ButtonLink href="/projects" size="lg" trailingIcon={<ArrowRight />}>
+        <Container className="mt-8 md:mt-10">
+          <HeroShowreel video={video} poster={poster} posterLabel={posterLabel} duration={duration} ambient={ambient} />
+        </Container>
+
+        {/* Brief row: intro + CTAs, and the instrument cluster. */}
+        <Container className="mt-8 grid gap-x-6 gap-y-10 md:mt-10 md:grid-cols-12">
+          <div className="md:col-span-6 lg:col-span-5">
+            <p className="max-w-[44ch] text-body-lg text-fg-muted">{site.intro}</p>
+            <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+              <ButtonLink href="/projects" size="lg" trailingIcon={<ArrowRight />} className="h-12 sm:h-11">
                 View projects
               </ButtonLink>
-              <ButtonLink href="#latest" size="lg" variant="secondary">
+              <ButtonLink href="#latest" size="lg" variant="secondary" className="h-12 sm:h-11">
                 Read the devlog
               </ButtonLink>
             </div>
           </div>
-        </Container>
 
-        <Container className="mt-14 md:mt-20">
-          <Showreel fallback={showreelPoster} />
-          <dl className="mt-6 grid grid-cols-3 gap-4 md:flex md:justify-end md:gap-16">
-            {stats.map(([k, v]) => (
-              <div key={k} className="space-y-1">
-                <dt className="text-[13px] text-fg-subtle">{k}</dt>
-                <dd className="text-lg font-medium tracking-[-0.02em] tabular-nums">{v}</dd>
+          <dl className="grid grid-cols-2 md:col-span-6 md:col-start-7 lg:col-span-5 lg:col-start-8">
+            {stats.map(([k, v], i) => (
+              <div
+                key={k}
+                className={[
+                  i % 2 === 1 ? "border-l border-line pl-6" : "pr-6",
+                  i < 2 ? "border-b border-line pb-4" : "pt-4",
+                ].join(" ")}
+              >
+                <dt className="label text-fg-muted">{k}</dt>
+                <dd className="mt-2 readout text-fg">{v}</dd>
               </div>
             ))}
           </dl>
         </Container>
       </section>
 
-      {/* ── Featured projects ────────────────────────────────── */}
+      {/* ── 01 Selected work ─────────────────────────────────── */}
       {lead && (
-        <Container as="section" aria-labelledby="work-title" className="pt-32 md:pt-48">
-          <SectionHeading
-            id="work-title"
-            eyebrow="Selected work"
-            title="Projects, built *in the open.*"
+        <Container as="section" aria-labelledby="work-title" className="pt-(--space-section)">
+          <SectionRail
+            index="01"
+            label="Selected work"
+            count={`${pad(featured.length, 2)} items`}
             action={<TextLink href="/projects">All projects</TextLink>}
+            id="work-title"
+            title="Projects, built in the open."
           />
-          <div className="mt-12 grid gap-x-6 gap-y-16 md:mt-16 md:grid-cols-2 md:gap-y-20">
-            {[lead, ...rest].map((p, i) => (
-              <Reveal key={p.id} delay={(i % 2) * 90} className={i === 0 ? "md:col-span-2" : undefined}>
+          <div className="mt-12 grid gap-x-6 gap-y-14 md:grid-cols-12 md:gap-y-16">
+            <Reveal className="md:col-span-12">
+              <ProjectCard size="feature" index={1} project={lead} sizes="(min-width: 1440px) 1376px, 100vw" />
+            </Reveal>
+            {rest.map((p, i) => (
+              <Reveal key={p.id} delay={Math.min(i + 1, 2) * 60} className="md:col-span-6">
                 <ProjectCard
-                  size={i === 0 ? "feature" : "default"}
-                  index={i + 1}
-                  project={{ ...p, meta: `${p.updateCount} update${p.updateCount === 1 ? "" : "s"}` }}
+                  index={i + 2}
+                  project={p}
+                  sizes="(min-width: 1440px) 676px, (min-width: 768px) 50vw, 100vw"
                 />
               </Reveal>
             ))}
@@ -110,10 +156,12 @@ export default async function HomePage() {
         </Container>
       )}
 
-      {/* ── Latest activity ──────────────────────────────────── */}
-      <Container as="section" id="latest" aria-labelledby="latest-title" className="pt-32 md:pt-48">
-        <SectionHeading id="latest-title" eyebrow="Devlog" title="Latest *updates.*" className="mb-12 md:mb-16" />
-        <LatestFeed items={latest} />
+      {/* ── 02 Devlog ────────────────────────────────────────── */}
+      <Container as="section" id="latest" aria-labelledby="latest-title" className="pt-(--space-section)">
+        <SectionRail index="02" label="Devlog" count={logRange} id="latest-title" title="Every step, logged." />
+        <div className="mt-12">
+          <LatestFeed items={latest} total={postCount} />
+        </div>
       </Container>
     </>
   );

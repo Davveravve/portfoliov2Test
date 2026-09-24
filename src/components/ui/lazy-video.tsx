@@ -1,59 +1,76 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, type Ref } from "react";
 import { cn } from "@/lib/cn";
 
 type Props = {
   src: string;
   poster?: string | null;
   label: string;
-  /** Ambient loop (muted, no controls) vs. a regular player. */
+  /** Muted in-view loop (no controls). Plays only ≥ md, in view, without reduced motion. */
   ambient?: boolean;
   className?: string;
+  ref?: Ref<HTMLVideoElement>;
 };
 
 /**
- * Video that only attaches its source when near the viewport. Shows the
- * poster frame until then. Ambient videos never play under reduced motion.
+ * Video that only attaches its source near the viewport and shows the poster
+ * until then. Ambient loops play while ≥ 50% visible and pause otherwise.
  */
-export function LazyVideo({ src, poster, label, ambient = false, className }: Props) {
-  const ref = useRef<HTMLVideoElement>(null);
-  const [active, setActive] = useState(false);
+export function LazyVideo({ src, poster, label, ambient = false, className, ref }: Props) {
+  const inner = useRef<HTMLVideoElement>(null);
+
+  // Merge the forwarded ref with the internal one.
+  useEffect(() => {
+    if (!ref) return;
+    if (typeof ref === "function") ref(inner.current);
+    else ref.current = inner.current;
+  }, [ref]);
 
   useEffect(() => {
-    const el = ref.current;
+    const el = inner.current;
     if (!el) return;
-    const io = new IntersectionObserver(
+    const near = new IntersectionObserver(
       ([entry]) => {
-        if (entry?.isIntersecting) {
-          setActive(true);
-          io.disconnect();
+        if (entry?.isIntersecting && !el.querySelector("source")) {
+          const source = document.createElement("source");
+          source.src = src;
+          el.append(source);
+          el.load();
+          near.disconnect();
         }
       },
       { rootMargin: "200px" },
     );
-    io.observe(el);
-    return () => io.disconnect();
-  }, []);
+    near.observe(el);
+    return () => near.disconnect();
+  }, [src]);
 
   useEffect(() => {
-    const el = ref.current;
-    if (!active || !ambient || !el) return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    el.play().catch(() => {});
-  }, [active, ambient]);
+    const el = inner.current;
+    if (!el || !ambient) return;
+    const allowed = () =>
+      window.matchMedia("(min-width: 48rem)").matches && !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const visible = new IntersectionObserver(
+      ([entry]) => {
+        if (entry?.isIntersecting && allowed()) el.play().catch(() => {});
+        else el.pause();
+      },
+      { threshold: 0.5 },
+    );
+    visible.observe(el);
+    return () => visible.disconnect();
+  }, [ambient]);
 
   return (
     <video
-      ref={ref}
+      ref={inner}
       className={cn("size-full object-cover", className)}
       poster={poster ?? undefined}
       preload="none"
       playsInline
       aria-label={label}
       {...(ambient ? { muted: true, loop: true } : { controls: true })}
-    >
-      {active && <source src={src} />}
-    </video>
+    />
   );
 }

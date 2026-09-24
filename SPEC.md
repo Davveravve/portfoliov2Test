@@ -83,24 +83,24 @@ alone — no job has to flip it. (Job in Phase 4 only sends the notification.)
 
 ## 4. Technical decisions
 
-| Area                 | Decision                                                                                                                                                                                                                                                | Why                                                    |
-| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
-| Framework            | Next.js 16 App Router, React 19, TypeScript `strict` + `noUncheckedIndexedAccess`                                                                                                                                                                       | spec                                                   |
-| Package manager      | **pnpm**                                                                                                                                                                                                                                                | fast, strict                                           |
-| Styling              | Tailwind CSS v4 (CSS-first `@theme` tokens in `src/app/globals.css`)                                                                                                                                                                                    | tokens live in one file                                |
-| Fonts                | Self-hosted via npm (no network at build): **Archivo** variable (with `wdth` axis, used expanded + uppercase for display), **Geist Sans** for UI/body, **Geist Mono** for meta/labels                                                                   | distinctive studio display face + clean sans, zero CLS |
-| DB                   | Postgres + Drizzle ORM. `DATABASE_URL` set → `postgres` (postgres.js) driver (Neon/Vercel Postgres). Unset → **PGlite** in `.data/pglite` (embedded Postgres, no account needed). Tests use in-memory PGlite                                            | runs everywhere with zero setup                        |
-| Migrations           | `drizzle-kit generate` → SQL in `drizzle/`, applied by `pnpm db:migrate` (same migrator for PGlite and Postgres)                                                                                                                                        | reviewed SQL                                           |
-| Storage              | `Storage` interface (`put`, `delete`, `url`, `read`) in `src/lib/storage`. `STORAGE_DRIVER=local` (default) writes to `.data/uploads`, served by `/media/[...key]`. `STORAGE_DRIVER=s3` → any S3-compatible bucket (Cloudflare R2) with `S3_PUBLIC_URL` | swap without code changes                              |
-| Images               | `next/image` everywhere (AVIF/WebP), blur placeholders from `media.blurDataUrl`. Seed images generated with `sharp`                                                                                                                                     | performance                                            |
-| Video                | `<video preload="none" poster=…>` mounted only when near viewport; never autoplay with sound                                                                                                                                                            | LCP / data                                             |
-| Markdown             | `react-markdown` + `remark-gfm` + a small directive for YouTube (lite embed: thumbnail until click)                                                                                                                                                     | safe (no raw HTML)                                     |
-| Auth (Phase 3)       | Auth.js v5 (`next-auth@beta`) GitHub provider, JWT sessions, `signIn` callback allows only `AUTH_GITHUB_ALLOWED_ID`. Guard in `proxy.ts` (Next 16 middleware) **and** in every server action                                                            | defense in depth                                       |
-| Email (Phase 4)      | Resend behind `RESEND_API_KEY`. `features.email = Boolean(key)`; when false the follow button is not rendered and routes return 404                                                                                                                     | graceful degrade                                       |
-| Feeds (Phase 4)      | Atom 1.0 at `/feed.xml` and `/projects/[slug]/feed.xml` (+ RSS 2.0 `.rss` aliases)                                                                                                                                                                      | spec                                                   |
-| Scheduling (Phase 4) | Vercel Cron → `/api/cron/notify` (secured by `CRON_SECRET`) sends notifications for newly-visible posts where `notifiedAt IS NULL`                                                                                                                      | scheduled posts need no flip                           |
-| Tests                | Vitest (unit + DB tests on in-memory PGlite), Playwright (e2e + screenshots at 390px and 1440px)                                                                                                                                                        | spec                                                   |
-| Deploy               | Vercel. `.env.example` documents every variable                                                                                                                                                                                                         | spec                                                   |
+| Area                 | Decision                                                                                                                                                                                                                                                | Why                             |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------- |
+| Framework            | Next.js 16 App Router, React 19, TypeScript `strict` + `noUncheckedIndexedAccess`                                                                                                                                                                       | spec                            |
+| Package manager      | **pnpm**                                                                                                                                                                                                                                                | fast, strict                    |
+| Styling              | Tailwind CSS v4 (CSS-first `@theme` tokens in `src/app/globals.css`)                                                                                                                                                                                    | tokens live in one file         |
+| Fonts                | Geist Sans + Geist Mono via the `geist` package (self-hosted by `next/font`). Nothing else.                                                                                                                                                             |
+| DB                   | Postgres + Drizzle ORM. `DATABASE_URL` set → `postgres` (postgres.js) driver (Neon/Vercel Postgres). Unset → **PGlite** in `.data/pglite` (embedded Postgres, no account needed). Tests use in-memory PGlite                                            | runs everywhere with zero setup |
+| Migrations           | `drizzle-kit generate` → SQL in `drizzle/`, applied by `pnpm db:migrate` (same migrator for PGlite and Postgres)                                                                                                                                        | reviewed SQL                    |
+| Storage              | `Storage` interface (`put`, `delete`, `url`, `read`) in `src/lib/storage`. `STORAGE_DRIVER=local` (default) writes to `.data/uploads`, served by `/media/[...key]`. `STORAGE_DRIVER=s3` → any S3-compatible bucket (Cloudflare R2) with `S3_PUBLIC_URL` | swap without code changes       |
+| Images               | `next/image` everywhere (AVIF/WebP), blur placeholders from `media.blurDataUrl`. Seed images generated with `sharp`                                                                                                                                     | performance                     |
+| Video                | `<video preload="none" poster=…>` mounted only when near viewport; never autoplay with sound                                                                                                                                                            | LCP / data                      |
+| Markdown             | `react-markdown` + `remark-gfm` + a small directive for YouTube (lite embed: thumbnail until click)                                                                                                                                                     | safe (no raw HTML)              |
+| Auth (Phase 3)       | Auth.js v5 (`next-auth@beta`) GitHub provider, JWT sessions, `signIn` callback allows only `AUTH_GITHUB_ALLOWED_ID`. Guard in `proxy.ts` (Next 16 middleware) **and** in every server action                                                            | defense in depth                |
+| Email (Phase 4)      | Resend behind `RESEND_API_KEY`. `features.email = Boolean(key)`; when false the follow button is not rendered and routes return 404                                                                                                                     | graceful degrade                |
+| Feeds (Phase 4)      | Atom 1.0 at `/feed.xml` and `/projects/[slug]/feed.xml` (+ RSS 2.0 `.rss` aliases)                                                                                                                                                                      | spec                            |
+| Scheduling (Phase 4) | Vercel Cron → `/api/cron/notify` (secured by `CRON_SECRET`) sends notifications for newly-visible posts where `notifiedAt IS NULL`                                                                                                                      | scheduled posts need no flip    |
+| Tests                | Vitest (unit + DB tests on in-memory PGlite), Playwright (e2e + screenshots at 390px and 1440px)                                                                                                                                                        | spec                            |
+| Deploy               | Vercel. `.env.example` documents every variable                                                                                                                                                                                                         | spec                            |
 
 ### Environment variables
 
@@ -108,31 +108,27 @@ See `.env.example` — every variable is documented there. Nothing is required f
 
 ## 5. Design system
 
-**Direction:** premium dark, flat, restrained. No neon, no glow, no gradient blobs.
-High-end studio / Linear / Vercel craft. Media is the star.
+**Direction: "Ground Station"** — chosen by a judge panel over three alternatives. Full,
+implementation-ready specification in **[`docs/DESIGN.md`](./docs/DESIGN.md)** (tokens, type,
+materials, every component, every page, motion, signature details, do-not list). Read it before
+touching any UI.
 
-- **Surface scale** (near-black, very slightly warm): `--bg #0b0b0c`, `--surface-1 #121214`,
-  `--surface-2 #18181b`, `--surface-3 #202024`. Hairlines `--line` (8% white) and
-  `--line-strong` (14% white).
-- **Text:** `--fg #ededee`, `--fg-muted #a1a1a8`, `--fg-subtle #6e6e76`.
-- **One accent:** signal orange `--accent #ff5b24` (flat, no glow), `--accent-fg #0b0b0c`.
-  Used sparingly: primary CTA, active states, milestone/release markers, focus rings.
-- **Status colors** are desaturated and only used as small dots/labels.
-- **Typography:** display = Archivo, expanded width, 700–800, uppercase, tight tracking,
-  fluid sizes with `clamp()`. Body = Geist Sans 15–17px, 1.6 line height.
-  Labels/meta = Geist Mono 11–12px uppercase, wide tracking.
-- **Grid:** 12 columns, max width 1440px, gutters 16px (mobile) → 32px (desktop).
-  A subtle 1px background column grid is visible on large screens only (`.bg-grid`).
-- **Radius:** small and consistent — 2px controls, 4px cards/media. Mostly square.
-- **Motion:** 150–400ms, `cubic-bezier(.2,.7,.2,1)`. Fade/slide-up on scroll via a single
-  `IntersectionObserver` component (`<Reveal>`). All motion disabled under
-  `prefers-reduced-motion`.
-- **Focus:** 2px accent outline with 2px offset on every interactive element.
-- **Components** (`src/components/ui`): `Button`/`ButtonLink`, `TextLink`, `Container`,
-  `GridOverlay`, `Eyebrow`, `SectionHeading`, `StatusBadge`, `Tag`/`TagList`, `MediaFrame`,
-  `LazyVideo`, `ProjectCard`, `TimelineMarker`, `Reveal`, `Kbd`, icons.
-  Layout: `SiteHeader` (+ `NavLinks`, `MobileNav`), `SiteFooter`, `SkipLink`.
-  Home: `Showreel`, `LatestFeed`. Live reference at `/design` (noindex).
+The five hard rules (rendering any of these wrong is a defect, not a taste call):
+
+1. **Footage first, chrome second.** Media is the largest element on every screen. Nothing is ever
+   drawn on top of an image or video — captions and controls live in the readout bar under the frame.
+2. **One LED.** The accent (`#ff5b24`) is an indicator light: 6px squares, the release/milestone
+   markers, the 1px active-nav underline, the 2px focus ring, the playing timecode. Never a fill,
+   border, hover colour or running text.
+3. **Every mono string maps to real data** (DB, config or asset). No clock, coordinates, SHA,
+   version strings or invented counts.
+4. **No transforms on media, ever.** No hover zoom, no scale-in, no parallax.
+5. **One radius (2px) on controls; 0 on frames, cards and panels.** No shadows, glow, blur, glass,
+   grain, gradients or vignettes. Surfaces ≤ `#1a1a1e`, hairlines ≤ 14%.
+
+Tokens live in `src/app/globals.css` (`@theme` + utilities `headline`, `label`, `meta`, `readout`,
+`rule-caps`, `bleed`, `led`, `led-live`, `flip`). Faces: Geist Sans (display/body/UI, weight ≤ 500)
+and Geist Mono (labels/readouts) — nothing else. Live reference at `/design` (noindex).
 
 ## 6. Routes
 

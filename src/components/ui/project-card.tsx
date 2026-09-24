@@ -1,8 +1,9 @@
 import Link from "next/link";
 import type { ProjectStatus } from "@/db/schema";
 import { cn } from "@/lib/cn";
+import { pad } from "@/lib/format";
+import { PROJECT_STATUS_LABEL } from "@/lib/labels";
 import type { MediaAsset } from "@/lib/media";
-import { ArrowUpRight } from "./icons";
 import { MediaFrame } from "./media-frame";
 import { StatusBadge } from "./status-badge";
 
@@ -13,68 +14,115 @@ export type ProjectCardData = {
   status: ProjectStatus;
   tech: string[];
   cover: MediaAsset | null;
-  /** Optional meta, e.g. "7 updates". */
-  meta?: string;
+  /** Public update count, shown zero-padded: "007 UPD". */
+  updateCount: number;
 };
 
 type Props = {
   project: ProjectCardData;
-  /** "feature" = large lead card. */
+  /** "feature" = the 12-column lead card. */
   size?: "default" | "feature";
-  /** Shown as a small index, e.g. 1 → "01". */
-  index?: number;
+  /** 1-based position, rendered as a mono index that flips to "VIEW →" on hover. */
+  index: number;
+  /** Exact `sizes` for the placement. */
+  sizes: string;
   priority?: boolean;
   headingLevel?: "h2" | "h3";
   className?: string;
 };
 
-/** Media-first project card. The whole card is one link (single tab stop). */
-export function ProjectCard({ project, size = "default", index, priority, headingLevel: H = "h3", className }: Props) {
-  const feature = size === "feature";
-  const meta = [project.tech[0], project.meta].filter(Boolean).join("  ·  ");
+const dot: Record<ProjectStatus, string> = {
+  prototype: "bg-status-prototype",
+  in_development: "bg-status-in-development",
+  released: "bg-status-released",
+  on_hold: "bg-status-on-hold",
+  archived: "bg-status-archived",
+};
+
+function FlipIndex({ index }: { index: number }) {
   return (
-    <article className={cn("group relative", className)}>
-      <div className="relative">
+    <span aria-hidden className="flip mt-1 label text-fg-subtle">
+      <span>{pad(index, 2)}</span>
+      <span className="text-fg">View →</span>
+    </span>
+  );
+}
+
+function techLine(tech: string[]) {
+  const shown = tech.slice(0, 3);
+  const rest = tech.length - shown.length;
+  return shown.join(" · ") + (rest > 0 ? ` +${rest}` : "");
+}
+
+/**
+ * Media-first project card. The whole card is one link (single tab stop).
+ * On hover the frame ring brightens one step and the index flips; the image
+ * never moves.
+ */
+export function ProjectCard({
+  project,
+  size = "default",
+  index,
+  sizes,
+  priority,
+  headingLevel: H = "h3",
+  className,
+}: Props) {
+  const feature = size === "feature";
+  const link = (
+    <Link
+      href={`/projects/${project.slug}`}
+      className="outline-none after:absolute after:inset-0 after:content-[''] focus-visible:after:outline-2 focus-visible:after:outline-offset-4 focus-visible:after:outline-accent"
+    >
+      {project.title}
+    </Link>
+  );
+
+  if (feature) {
+    return (
+      <article className={cn("group relative", className)}>
         <MediaFrame
           media={project.cover}
           ratio="4/3"
-          className={cn(feature ? "rounded-xl sm:aspect-[16/9] lg:aspect-[2/1]" : "rounded-xl")}
+          className="sm:aspect-[16/9] lg:aspect-[2/1]"
+          sizes={sizes}
           priority={priority}
-          sizes={feature ? "(min-width: 1440px) 1376px, 100vw" : "(min-width: 1024px) 50vw, 100vw"}
-          imgClassName="transition-transform duration-[1200ms] ease-out group-hover:scale-[1.03]"
         />
-        <span
-          aria-hidden
-          className="absolute top-4 right-4 inline-flex size-10 translate-y-1 items-center justify-center rounded-full bg-fg text-bg opacity-0 transition-[opacity,transform] duration-300 ease-out group-hover:translate-y-0 group-hover:opacity-100"
-        >
-          <ArrowUpRight size={16} />
-        </span>
-      </div>
-
-      <div className={cn("flex items-start justify-between gap-6", feature ? "mt-6" : "mt-5")}>
-        <div className="min-w-0 space-y-1.5">
-          <H
-            className={cn("headline", feature ? "text-display-md" : "text-[1.375rem] leading-tight tracking-[-0.03em]")}
-          >
-            <Link
-              href={`/projects/${project.slug}`}
-              className="outline-none after:absolute after:inset-0 after:rounded-xl after:content-[''] focus-visible:after:outline-2 focus-visible:after:outline-offset-4 focus-visible:after:outline-accent"
-            >
-              {project.title}
-            </Link>
-          </H>
-          <p className={cn("text-fg-muted", feature ? "max-w-xl text-[17px]" : "text-[15px]")}>{project.tagline}</p>
+        <div className="mt-4 grid grid-cols-[2.5rem_1fr] gap-x-4 gap-y-4 border-t border-line pt-4 md:grid-cols-12 md:gap-x-6">
+          <div className="md:col-span-1">
+            <FlipIndex index={index} />
+          </div>
+          <div className="md:col-span-6">
+            <H className="headline text-display-md">{link}</H>
+            <p className="mt-1.5 max-w-[44ch] text-body text-fg-muted">{project.tagline}</p>
+          </div>
+          <p className="hidden truncate label text-fg-muted md:col-span-3 md:block md:pt-1.5">
+            {techLine(project.tech)}
+          </p>
+          <div className="col-start-2 flex items-center gap-4 label text-fg-muted md:col-span-2 md:flex-col md:items-end md:gap-2 md:pt-1.5">
+            <StatusBadge status={project.status} variant="mono" />
+            <span>{pad(project.updateCount, 3)} upd</span>
+          </div>
         </div>
-        {index !== undefined && (
-          <span aria-hidden className="pt-2 label text-fg-subtle">
-            {String(index).padStart(2, "0")}
-          </span>
-        )}
-      </div>
+      </article>
+    );
+  }
 
-      <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2">
-        <StatusBadge status={project.status} />
-        {meta && <span className="text-[13px] text-fg-subtle">{meta}</span>}
+  return (
+    <article className={cn("group relative", className)}>
+      <MediaFrame media={project.cover} ratio="4/3" className="md:aspect-[16/10]" sizes={sizes} priority={priority} />
+      <div className="mt-4 grid grid-cols-[2.5rem_1fr] gap-x-4 border-t border-line pt-4">
+        <FlipIndex index={index} />
+        <div className="min-w-0">
+          <H className="headline text-display-sm">{link}</H>
+          <p className="mt-1.5 text-body text-fg-muted">{project.tagline}</p>
+          <p className="mt-3 flex items-center gap-2 truncate label text-fg-muted">
+            <span aria-hidden className={cn("size-1.5 shrink-0 rounded-full", dot[project.status])} />
+            <span className="truncate">
+              {PROJECT_STATUS_LABEL[project.status]} · {project.tech[0] ?? "—"} · {pad(project.updateCount, 3)} upd
+            </span>
+          </p>
+        </div>
       </div>
     </article>
   );

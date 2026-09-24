@@ -3,18 +3,18 @@ import type { ComponentPropsWithoutRef } from "react";
 import { cn } from "@/lib/cn";
 import { ArrowRight } from "./icons";
 
-/** Inline "View all →" style link. Aligns flush with text (no button padding). */
+/** Inline "All projects →" link. → is in-site navigation; ↗ leaves the site. */
 export function TextLink({ className, children, ...props }: ComponentPropsWithoutRef<typeof Link>) {
   return (
     <Link
       className={cn(
-        "group inline-flex items-center gap-2 text-sm text-fg-muted transition-colors duration-200 hover:text-fg",
+        "group inline-flex items-center gap-1.5 text-ui text-fg-muted transition-colors duration-150 hover:text-fg",
         className,
       )}
       {...props}
     >
       {children}
-      <ArrowRight className="transition-transform duration-200 ease-out group-hover:translate-x-0.5 group-hover:text-accent" />
+      <ArrowRight size={14} className="transition-transform duration-150 ease-out group-hover:translate-x-0.5" />
     </Link>
   );
 }

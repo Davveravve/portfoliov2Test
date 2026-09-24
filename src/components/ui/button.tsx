@@ -2,23 +2,22 @@ import Link from "next/link";
 import type { ComponentPropsWithoutRef, ReactNode } from "react";
 import { cn } from "@/lib/cn";
 
-type Variant = "primary" | "secondary" | "ghost" | "accent";
+type Variant = "primary" | "secondary" | "ghost";
 type Size = "sm" | "md" | "lg";
 
 const base =
-  "group/btn inline-flex shrink-0 items-center justify-center gap-2 rounded-full font-medium tracking-[-0.01em] whitespace-nowrap transition-[background-color,border-color,color,transform,box-shadow] duration-200 ease-out active:scale-[0.98] disabled:pointer-events-none disabled:opacity-40";
+  "group/btn inline-flex shrink-0 items-center justify-center gap-2.5 rounded-xs text-ui whitespace-nowrap transition-[background-color,border-color,color] duration-150 ease-out active:translate-y-px disabled:pointer-events-none disabled:opacity-40";
 
 const variants: Record<Variant, string> = {
   primary: "bg-fg text-bg hover:bg-white",
-  accent: "bg-accent text-accent-fg hover:bg-accent-hover",
-  secondary: "text-fg ring-1 ring-line-strong ring-inset hover:bg-surface-2 hover:ring-fg-subtle/60",
-  ghost: "text-fg-muted hover:bg-surface-2 hover:text-fg",
+  secondary: "text-fg ring-1 ring-line-strong ring-inset hover:bg-surface-2 hover:ring-fg-subtle active:bg-surface-3",
+  ghost: "text-fg-muted hover:bg-surface-2 hover:text-fg active:bg-surface-3",
 };
 
 const sizes: Record<Size, string> = {
-  sm: "h-8 px-3.5 text-[13px]",
-  md: "h-10 px-5 text-sm",
-  lg: "h-12 px-6 text-[15px]",
+  sm: "h-8 px-3 text-[13px]",
+  md: "h-10 px-4",
+  lg: "h-11 px-5 text-[15px]",
 };
 
 export function buttonClasses({
@@ -30,6 +29,21 @@ export function buttonClasses({
 }
 
 type CommonProps = { variant?: Variant; size?: Size; icon?: ReactNode; trailingIcon?: ReactNode };
+
+function Inner({ variant, icon, trailingIcon, children }: CommonProps & { children: ReactNode }) {
+  return (
+    <>
+      {/* The primary button carries the power LED. */}
+      {variant === "primary" || variant === undefined ? <span aria-hidden className="led" /> : icon}
+      {children}
+      {trailingIcon && (
+        <span className="transition-transform duration-150 ease-out group-hover/btn:translate-x-0.5">
+          {trailingIcon}
+        </span>
+      )}
+    </>
+  );
+}
 
 export function Button({
   variant,
@@ -43,13 +57,9 @@ export function Button({
 }: CommonProps & ComponentPropsWithoutRef<"button">) {
   return (
     <button type={type} className={buttonClasses({ variant, size, className })} {...props}>
-      {icon}
-      {children}
-      {trailingIcon && (
-        <span className="transition-transform duration-200 ease-out group-hover/btn:translate-x-0.5">
-          {trailingIcon}
-        </span>
-      )}
+      <Inner variant={variant} icon={icon} trailingIcon={trailingIcon}>
+        {children}
+      </Inner>
     </button>
   );
 }
@@ -65,13 +75,9 @@ export function ButtonLink({
 }: CommonProps & ComponentPropsWithoutRef<typeof Link>) {
   return (
     <Link className={buttonClasses({ variant, size, className })} {...props}>
-      {icon}
-      {children}
-      {trailingIcon && (
-        <span className="transition-transform duration-200 ease-out group-hover/btn:translate-x-0.5">
-          {trailingIcon}
-        </span>
-      )}
+      <Inner variant={variant} icon={icon} trailingIcon={trailingIcon}>
+        {children}
+      </Inner>
     </Link>
   );
 }
