@@ -12,7 +12,7 @@ const dot: Record<ProjectStatus, string> = {
 
 export function StatusBadge({ status, className }: { status: ProjectStatus; className?: string }) {
   return (
-    <span className={cn("inline-flex items-center gap-2 label text-fg-muted", className)}>
+    <span className={cn("inline-flex items-center gap-2 text-[13px] text-fg-muted", className)}>
       <span aria-hidden className={cn("size-1.5 rounded-full", dot[status])} />
       {PROJECT_STATUS_LABEL[status]}
     </span>

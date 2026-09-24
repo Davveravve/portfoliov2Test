@@ -8,6 +8,10 @@ export const site = {
   /** Short mark used in the header on small screens. */
   shortName: "YN",
   role: "Solo game developer",
+  /** Hero statement. Wrap words in *asterisks* for the serif italic accent. */
+  headline: "I build quiet worlds in Unreal, small sharp games for the web — *and document every step.*",
+  /** Shown as a small status next to the location. Set to "" to hide. */
+  availability: "Open to collaborations",
   disciplines: ["Unreal Engine", "Web games", "Tools"],
   intro:
     "I make atmospheric games in Unreal Engine, small sharp games for the browser, and the tools that help me build both. Every project here has an open devlog — follow along from the first greybox to launch day.",

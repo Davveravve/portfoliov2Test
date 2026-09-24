@@ -8,7 +8,7 @@ export function TextLink({ className, children, ...props }: ComponentPropsWithou
   return (
     <Link
       className={cn(
-        "group inline-flex items-center gap-2 text-sm text-fg-muted transition-colors hover:text-fg",
+        "group inline-flex items-center gap-2 text-sm text-fg-muted transition-colors duration-200 hover:text-fg",
         className,
       )}
       {...props}

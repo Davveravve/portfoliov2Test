@@ -6,70 +6,60 @@
    ────────────────────────────────────────────────────────────────────────── */
 @theme {
   --color-*: initial;
-  --color-bg: #0b0b0c;
-  --color-surface-1: #121214;
-  --color-surface-2: #18181b;
-  --color-surface-3: #202024;
-  --color-line: rgb(255 255 255 / 0.08);
-  --color-line-strong: rgb(255 255 255 / 0.14);
-  --color-fg: #ededee;
-  --color-fg-muted: #a1a1a8;
-  --color-fg-subtle: #75757d;
+  --color-bg: #08080a;
+  --color-surface-1: #0e0e11;
+  --color-surface-2: #141418;
+  --color-surface-3: #1b1b20;
+  --color-line: rgb(255 255 255 / 0.07);
+  --color-line-strong: rgb(255 255 255 / 0.12);
+  --color-fg: #f5f5f4;
+  --color-fg-muted: #9d9da6;
+  --color-fg-subtle: #6a6a73;
   --color-accent: #ff5b24;
   --color-accent-hover: #ff7445;
-  --color-accent-fg: #0b0b0c;
+  --color-accent-fg: #08080a;
   --color-white: #ffffff;
   --color-black: #000000;
   --color-transparent: transparent;
   --color-current: currentColor;
 
-  /* Status colours are desaturated and only used for small dots/labels. */
+  /* Status colours are desaturated and only used for small dots. */
   --color-status-prototype: #8d9ccc;
   --color-status-in-development: #e0a458;
   --color-status-released: #7fb58a;
   --color-status-on-hold: #a1a1a8;
   --color-status-archived: #6e6e76;
 
-  --font-display: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
   --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-instrument-serif), ui-serif, Georgia, serif;
   --font-mono: var(--font-geist-mono), ui-monospace, "SFMono-Regular", monospace;
 
-  --radius-xs: 2px;
-  --radius-sm: 4px;
-  --radius-md: 6px;
+  --radius-xs: 3px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
 
-  --ease-out: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
   --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
 
   --breakpoint-xs: 30rem;
   --container-page: 90rem; /* 1440px */
   --container-prose: 42rem;
 
-  --text-display-2xl: clamp(3rem, 13vw, 9.5rem);
-  --text-display-2xl--line-height: 0.86;
-  --text-display-xl: clamp(2.5rem, 6vw, 5.5rem);
-  --text-display-xl--line-height: 0.9;
-  --text-display-lg: clamp(2rem, 4vw, 3.5rem);
-  --text-display-lg--line-height: 0.95;
-  --text-display-md: clamp(1.5rem, 2.4vw, 2.125rem);
-  --text-display-md--line-height: 1;
-  --text-display-sm: 1.25rem;
-  --text-display-sm--line-height: 1.1;
+  /* Headline scale: large, tight, sentence case. */
+  --text-display-2xl: clamp(2.75rem, 7.2vw, 7rem);
+  --text-display-2xl--line-height: 0.98;
+  --text-display-xl: clamp(2.5rem, 5.5vw, 5rem);
+  --text-display-xl--line-height: 1;
+  --text-display-lg: clamp(2rem, 3.6vw, 3.25rem);
+  --text-display-lg--line-height: 1.04;
+  --text-display-md: clamp(1.5rem, 2.2vw, 2rem);
+  --text-display-md--line-height: 1.1;
+  --text-display-sm: 1.3125rem;
+  --text-display-sm--line-height: 1.2;
   --text-label: 0.6875rem; /* 11px mono labels */
   --text-label--line-height: 1.2;
-
-  --animate-reveal: reveal 0.7s var(--ease-out) both;
-
-  @keyframes reveal {
-    from {
-      opacity: 0;
-      transform: translateY(12px);
-    }
-    to {
-      opacity: 1;
-      transform: none;
-    }
-  }
 }
 
 /* ── Base ─────────────────────────────────────────────────────────────── */
@@ -133,13 +123,29 @@
 
 /* ── Utilities ────────────────────────────────────────────────────────── */
 
-/* Display type: Archivo, expanded, uppercase, tight. */
-@utility font-display-x {
-  font-family: var(--font-display);
-  font-stretch: 125%;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: -0.02em;
+/* Headlines: Geist, medium weight, very tight tracking, sentence case.
+   <em> inside a headline switches to the serif italic accent. */
+@utility headline {
+  font-family: var(--font-sans);
+  font-weight: 500;
+  letter-spacing: -0.045em;
+  font-feature-settings: "ss01", "cv11";
+
+  & em {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-weight: 400;
+    letter-spacing: -0.02em;
+    padding-right: 0.04em;
+  }
+}
+
+/* Serif italic accent on its own. */
+@utility serif-accent {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-weight: 400;
+  letter-spacing: -0.01em;
 }
 
 /* Mono meta labels. */
@@ -148,7 +154,7 @@
   font-size: var(--text-label);
   line-height: var(--text-label--line-height);
   text-transform: uppercase;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.08em;
 }
 
 @utility px-gutter {

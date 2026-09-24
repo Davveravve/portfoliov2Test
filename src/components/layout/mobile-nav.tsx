@@ -66,13 +66,9 @@ export function MobileNav({ items, footer }: { items: readonly Item[]; footer?: 
 
       {mounted &&
         createPortal(
-          <div
-            id={panelId}
-            hidden={!open}
-            className="fixed inset-x-0 top-(--header-h) bottom-0 z-40 border-t border-line bg-bg md:hidden"
-          >
+          <div id={panelId} hidden={!open} className="fixed inset-x-0 top-(--header-h) bottom-0 z-40 bg-bg md:hidden">
             <nav aria-label="Mobile" className="flex h-full flex-col justify-between px-gutter pt-6 pb-10">
-              <ul className="divide-y divide-line border-y border-line">
+              <ul className="divide-y divide-line border-b border-line">
                 {items.map((item, i) => (
                   <li key={item.href}>
                     <Link
@@ -80,7 +76,7 @@ export function MobileNav({ items, footer }: { items: readonly Item[]; footer?: 
                       href={item.href}
                       onClick={() => setOpen(false)}
                       className={cn(
-                        "flex items-center justify-between py-5 font-display-x text-[2rem] leading-none",
+                        "flex items-center justify-between py-5 headline text-[2.25rem] leading-none",
                         pathname === item.href ? "text-fg" : "text-fg-muted",
                       )}
                     >
@@ -92,7 +88,7 @@ export function MobileNav({ items, footer }: { items: readonly Item[]; footer?: 
                   </li>
                 ))}
               </ul>
-              {footer && <p className="label text-fg-subtle">{footer}</p>}
+              {footer && <p className="text-sm text-fg-muted">{footer}</p>}
             </nav>
           </div>,
           document.body,

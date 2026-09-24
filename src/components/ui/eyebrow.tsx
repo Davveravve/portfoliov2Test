@@ -1,19 +1,19 @@
 import type { ReactNode } from "react";
 import { cn } from "@/lib/cn";
 
-/** Mono uppercase label with an accent tick. Used above headings and as meta. */
+/** Small mono label with an accent dot. Used above headings and as meta. */
 export function Eyebrow({
   children,
   className,
-  tick = true,
+  dot = true,
 }: {
   children: ReactNode;
   className?: string;
-  tick?: boolean;
+  dot?: boolean;
 }) {
   return (
     <p className={cn("flex items-center gap-2.5 label text-fg-muted", className)}>
-      {tick && <span aria-hidden className="inline-block h-px w-5 bg-accent" />}
+      {dot && <span aria-hidden className="inline-block size-1 rounded-full bg-accent" />}
       {children}
     </p>
   );

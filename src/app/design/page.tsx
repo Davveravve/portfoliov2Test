@@ -46,7 +46,7 @@ export default async function DesignPage() {
 
   return (
     <Container className="py-16 md:py-24">
-      <SectionHeading as="h1" eyebrow="Reference" title="Design system" className="mb-4 border-b-0" />
+      <SectionHeading as="h1" eyebrow="Reference" title="Design *system*" size="xl" className="mb-8" />
 
       <Block title="Colour">
         <ul className="grid grid-cols-3 gap-3 sm:grid-cols-5 lg:grid-cols-9">
@@ -61,23 +61,35 @@ export default async function DesignPage() {
 
       <Block title="Type">
         <div className="space-y-8">
-          <p className="font-display-x text-display-2xl">Display 2XL</p>
-          <p className="font-display-x text-display-xl">Display XL</p>
-          <p className="font-display-x text-display-lg">Display LG</p>
-          <p className="font-display-x text-display-md">Display MD</p>
-          <p className="font-display-x text-display-sm">Display SM</p>
+          <p className="headline text-display-2xl">
+            Display 2XL <em>accent</em>
+          </p>
+          <p className="headline text-display-xl">
+            Display XL <em>accent</em>
+          </p>
+          <p className="headline text-display-lg">
+            Display LG <em>accent</em>
+          </p>
+          <p className="headline text-display-md">
+            Display MD <em>accent</em>
+          </p>
+          <p className="headline text-display-sm">
+            Display SM <em>accent</em>
+          </p>
           <p className="max-w-prose text-[17px] leading-relaxed text-fg-muted">
             Body — Geist Sans. Every project here has an open devlog: follow along from the first greybox to launch day.
             Long-form text sits at 17px with a relaxed measure.
           </p>
           <p className="label text-fg-muted">Label — Geist Mono · 11px · uppercase</p>
-          <Eyebrow>Eyebrow with accent tick</Eyebrow>
+          <p className="serif-accent text-3xl">Instrument Serif italic — the accent voice</p>
+          <Eyebrow>Eyebrow with accent dot</Eyebrow>
         </div>
       </Block>
 
       <Block title="Buttons">
         <div className="flex flex-wrap items-center gap-3">
           <Button trailingIcon={<ArrowRight />}>Primary</Button>
+          <Button variant="accent">Accent</Button>
           <Button variant="secondary">Secondary</Button>
           <Button variant="ghost">Ghost</Button>
           <Button size="sm">Small</Button>

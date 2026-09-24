@@ -23,12 +23,11 @@ export function NavLinks({ items }: { items: readonly Item[] }) {
               href={item.href}
               aria-current={active ? "page" : undefined}
               className={cn(
-                "relative inline-flex h-9 items-center px-3 text-sm transition-colors duration-150",
-                active ? "text-fg" : "text-fg-muted hover:text-fg",
+                "inline-flex h-8 items-center rounded-full px-3.5 text-sm tracking-[-0.01em] transition-colors duration-200",
+                active ? "bg-surface-2 text-fg" : "text-fg-muted hover:text-fg",
               )}
             >
               {item.label}
-              {active && <span aria-hidden className="absolute inset-x-3 -bottom-px h-px bg-accent" />}
             </Link>
           </li>
         );

@@ -1,13 +1,14 @@
 import { LatestFeed } from "@/components/home/latest-feed";
 import { Showreel } from "@/components/home/showreel";
 import { ButtonLink } from "@/components/ui/button";
-import { TextLink } from "@/components/ui/text-link";
 import { Container } from "@/components/ui/container";
+import { Emphasis } from "@/components/ui/emphasis";
 import { Eyebrow } from "@/components/ui/eyebrow";
 import { ArrowRight } from "@/components/ui/icons";
 import { ProjectCard } from "@/components/ui/project-card";
 import { Reveal } from "@/components/ui/reveal";
 import { SectionHeading } from "@/components/ui/section-heading";
+import { TextLink } from "@/components/ui/text-link";
 import { site } from "@/config/site";
 import { getDb } from "@/db/client";
 import { formatMonth } from "@/lib/format";
@@ -28,68 +29,80 @@ export default async function HomePage() {
     .filter(Boolean)
     .sort()[0];
 
+  const stats = [
+    ["Projects", String(featured.length).padStart(2, "0")],
+    ["Devlog updates", String(totalUpdates)],
+    ["Building since", since ? formatMonth(since) : "—"],
+  ] as const;
+
   return (
     <>
       {/* ── Hero ─────────────────────────────────────────────── */}
-      <Container as="section" aria-labelledby="hero-title" className="pt-12 pb-8 md:pt-20 md:pb-16">
-        <Eyebrow className="mb-8 md:mb-10">{site.disciplines.join(" · ")}</Eyebrow>
-        <h1 id="hero-title" className="font-display-x text-display-2xl break-words">
-          {site.name}
-        </h1>
+      <section aria-labelledby="hero-title" className="pt-14 md:pt-24">
+        <Container>
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <Eyebrow>
+              {site.role} — {site.location}
+            </Eyebrow>
+            {site.availability && (
+              <p className="inline-flex items-center gap-2 text-[13px] text-fg-muted">
+                <span aria-hidden className="relative flex size-2">
+                  <span className="absolute inset-0 animate-ping rounded-full bg-status-released/60 motion-reduce:hidden" />
+                  <span className="relative size-2 rounded-full bg-status-released" />
+                </span>
+                {site.availability}
+              </p>
+            )}
+          </div>
 
-        <div className="mt-10 grid gap-10 md:mt-14 lg:grid-cols-12 lg:gap-8">
-          <div className="flex flex-col justify-between gap-10 lg:col-span-4">
-            <div className="space-y-6">
-              <p className="label text-fg">{site.role}</p>
-              <p className="max-w-md text-[17px] leading-relaxed text-fg-muted">{site.intro}</p>
-              <div className="flex flex-wrap gap-3 pt-2">
-                <ButtonLink href="/projects" size="lg" trailingIcon={<ArrowRight />}>
-                  View projects
-                </ButtonLink>
-                <ButtonLink href="#latest" size="lg" variant="secondary">
-                  Read the devlog
-                </ButtonLink>
-              </div>
+          <h1 id="hero-title" className="mt-10 max-w-[16ch] headline text-display-2xl md:mt-14">
+            <Emphasis text={site.headline} />
+          </h1>
+
+          <div className="mt-10 grid items-end gap-8 md:mt-14 md:grid-cols-12">
+            <p className="max-w-md text-[17px] leading-relaxed text-fg-muted md:col-span-6 lg:col-span-5">
+              {site.intro}
+            </p>
+            <div className="flex flex-wrap gap-3 md:col-span-6 md:justify-end lg:col-span-7">
+              <ButtonLink href="/projects" size="lg" trailingIcon={<ArrowRight />}>
+                View projects
+              </ButtonLink>
+              <ButtonLink href="#latest" size="lg" variant="secondary">
+                Read the devlog
+              </ButtonLink>
             </div>
-
-            <dl className="grid grid-cols-3 border-t border-line pt-5">
-              {[
-                ["Projects", String(featured.length).padStart(2, "0")],
-                ["Updates", String(totalUpdates).padStart(2, "0")],
-                ["Since", since ? formatMonth(since) : "—"],
-              ].map(([k, v]) => (
-                <div key={k} className="space-y-1.5">
-                  <dt className="label text-fg-subtle">{k}</dt>
-                  <dd className="font-display-x text-lg">{v}</dd>
-                </div>
-              ))}
-            </dl>
           </div>
+        </Container>
 
-          <div className="lg:col-span-8">
-            <Showreel fallback={showreelPoster} />
-          </div>
-        </div>
-      </Container>
+        <Container className="mt-14 md:mt-20">
+          <Showreel fallback={showreelPoster} />
+          <dl className="mt-6 grid grid-cols-3 gap-4 md:flex md:justify-end md:gap-16">
+            {stats.map(([k, v]) => (
+              <div key={k} className="space-y-1">
+                <dt className="text-[13px] text-fg-subtle">{k}</dt>
+                <dd className="text-lg font-medium tracking-[-0.02em] tabular-nums">{v}</dd>
+              </div>
+            ))}
+          </dl>
+        </Container>
+      </section>
 
       {/* ── Featured projects ────────────────────────────────── */}
       {lead && (
-        <Container as="section" aria-labelledby="work-title" className="py-16 md:py-24">
+        <Container as="section" aria-labelledby="work-title" className="pt-32 md:pt-48">
           <SectionHeading
             id="work-title"
-            eyebrow="01 — Selected work"
-            title="Projects"
+            eyebrow="Selected work"
+            title="Projects, built *in the open.*"
             action={<TextLink href="/projects">All projects</TextLink>}
           />
-          <div className="mt-10 grid gap-x-8 gap-y-14 md:mt-12 md:gap-y-20 lg:grid-cols-12">
+          <div className="mt-12 grid gap-x-6 gap-y-16 md:mt-16 md:grid-cols-2 md:gap-y-20">
             {[lead, ...rest].map((p, i) => (
-              <Reveal key={p.id} delay={i * 80} className={i === 0 ? "lg:col-span-12" : "lg:col-span-6"}>
+              <Reveal key={p.id} delay={(i % 2) * 90} className={i === 0 ? "md:col-span-2" : undefined}>
                 <ProjectCard
                   size={i === 0 ? "feature" : "default"}
-                  project={{
-                    ...p,
-                    meta: `${p.updateCount} update${p.updateCount === 1 ? "" : "s"}`,
-                  }}
+                  index={i + 1}
+                  project={{ ...p, meta: `${p.updateCount} update${p.updateCount === 1 ? "" : "s"}` }}
                 />
               </Reveal>
             ))}
@@ -98,8 +111,8 @@ export default async function HomePage() {
       )}
 
       {/* ── Latest activity ──────────────────────────────────── */}
-      <Container as="section" id="latest" aria-labelledby="latest-title" className="py-16 md:py-24">
-        <SectionHeading id="latest-title" eyebrow="02 — Devlog" title="Latest updates" />
+      <Container as="section" id="latest" aria-labelledby="latest-title" className="pt-32 md:pt-48">
+        <SectionHeading id="latest-title" eyebrow="Devlog" title="Latest *updates.*" className="mb-12 md:mb-16" />
         <LatestFeed items={latest} />
       </Container>
     </>

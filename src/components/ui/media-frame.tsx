@@ -33,7 +33,7 @@ export function MediaFrame({
   const frame = (
     <div
       className={cn(
-        "relative aspect-(--ratio) overflow-hidden rounded-sm bg-surface-2 ring-1 ring-line ring-inset",
+        "relative aspect-(--ratio) overflow-hidden rounded-lg bg-surface-1 ring-1 ring-line ring-inset [&>img]:rounded-[inherit]",
         className,
       )}
       style={{ "--ratio": ratio } as CSSProperties}
