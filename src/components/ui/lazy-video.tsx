@@ -5,20 +5,29 @@ import { cn } from "@/lib/cn";
 
 type Props = {
   src: string;
+  /** Native poster. Pass null when an optimised <Image> poster is layered underneath instead. */
   poster?: string | null;
   label: string;
-  /** Muted in-view loop (no controls). Plays only ≥ md, in view, without reduced motion. */
+  /** Muted in-view loop. Plays only ≥ md, ≥ 50% in view, without reduced motion, and while not `paused`. */
   ambient?: boolean;
+  /** User-controlled stop for the ambient loop (WCAG 2.2.2). */
+  paused?: boolean;
+  /** Native controls. Defaults to `!ambient`. */
+  controls?: boolean;
   className?: string;
   ref?: Ref<HTMLVideoElement>;
 };
+
+const allowed = () =>
+  window.matchMedia("(min-width: 48rem)").matches && !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 /**
  * Video that only attaches its source near the viewport and shows the poster
  * until then. Ambient loops play while ≥ 50% visible and pause otherwise.
  */
-export function LazyVideo({ src, poster, label, ambient = false, className, ref }: Props) {
+export function LazyVideo({ src, poster, label, ambient = false, paused = false, controls, className, ref }: Props) {
   const inner = useRef<HTMLVideoElement>(null);
+  const inView = useRef(false);
 
   // Merge the forwarded ref with the internal one.
   useEffect(() => {
@@ -27,6 +36,7 @@ export function LazyVideo({ src, poster, label, ambient = false, className, ref 
     else ref.current = inner.current;
   }, [ref]);
 
+  // Attach the source only when the element gets near the viewport.
   useEffect(() => {
     const el = inner.current;
     if (!el) return;
@@ -46,21 +56,21 @@ export function LazyVideo({ src, poster, label, ambient = false, className, ref 
     return () => near.disconnect();
   }, [src]);
 
+  // Ambient: play while visible, pause otherwise.
   useEffect(() => {
     const el = inner.current;
     if (!el || !ambient) return;
-    const allowed = () =>
-      window.matchMedia("(min-width: 48rem)").matches && !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const visible = new IntersectionObserver(
       ([entry]) => {
-        if (entry?.isIntersecting && allowed()) el.play().catch(() => {});
+        inView.current = Boolean(entry?.isIntersecting);
+        if (inView.current && !paused && allowed()) el.play().catch(() => {});
         else el.pause();
       },
       { threshold: 0.5 },
     );
     visible.observe(el);
     return () => visible.disconnect();
-  }, [ambient]);
+  }, [ambient, paused]);
 
   return (
     <video
@@ -70,7 +80,8 @@ export function LazyVideo({ src, poster, label, ambient = false, className, ref 
       preload="none"
       playsInline
       aria-label={label}
-      {...(ambient ? { muted: true, loop: true } : { controls: true })}
+      controls={controls ?? !ambient}
+      {...(ambient ? { muted: true, loop: true } : {})}
     />
   );
 }

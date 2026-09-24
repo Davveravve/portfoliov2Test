@@ -41,7 +41,9 @@ export function LatestFeed({ items, total }: { items: FeedItem[]; total: number 
             <div className="min-w-0">
               <p className="truncate label text-fg-muted">
                 <span className="md:hidden">
-                  <span aria-hidden>{index} · </span>
+                  <span aria-hidden className="hidden xs:inline">
+                    {index} ·{" "}
+                  </span>
                   <time dateTime={item.publishedAt.toISOString()}>{date}</time> ·{" "}
                 </span>
                 {item.project.title}
@@ -56,13 +58,14 @@ export function LatestFeed({ items, total }: { items: FeedItem[]; total: number 
                 <ArrowRight
                   size={14}
                   aria-hidden
-                  className="ml-2 inline -translate-x-1 align-baseline text-fg-muted opacity-0 transition-[opacity,transform] duration-150 ease-out group-hover:translate-x-0 group-hover:opacity-100"
+                  className="ml-2 hidden -translate-x-1 align-baseline text-fg-muted opacity-0 transition-[opacity,transform] duration-150 ease-out group-hover:translate-x-0 group-hover:opacity-100 [@media(hover:hover)]:inline"
                 />
               </h3>
               {item.excerpt && <p className="mt-2 line-clamp-2 max-w-2xl text-body text-fg-muted">{item.excerpt}</p>}
             </div>
 
-            <div className="self-start">
+            {/* Clicks fall through to the row link overlay. */}
+            <div className="pointer-events-none self-start">
               {item.cover && <MediaFrame media={item.cover} ratio="4/3" sizes="(min-width: 768px) 11rem, 5rem" />}
             </div>
           </Reveal>

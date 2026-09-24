@@ -11,7 +11,7 @@ export const site = {
   role: "Solo game developer",
   disciplines: ["Unreal Engine", "Web games", "Tools"],
   /** Hero statement. Starred segment = muted coda (rendered one tone darker). */
-  headline: "I build quiet worlds in Unreal and small, sharp games for the web — *and document every step.*",
+  headline: "I build quiet worlds in Unreal and small, sharp games for the web\u00a0— *and document every step.*",
   intro:
     "Atmospheric games in Unreal Engine, small games for the browser, and the tools that help me build both. Every project here has an open devlog — follow along from the first greybox to launch day.",
   /** Shown as a blinking LED status in the hero rail. Set to "" to hide. */

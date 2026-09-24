@@ -37,7 +37,7 @@ export function SectionRail({
 }: Props) {
   const rail = (
     <>
-      <div className="flex flex-wrap items-end justify-between gap-x-8 gap-y-2 pb-3">
+      <div className="flex min-h-11 flex-wrap items-center justify-between gap-x-8 gap-y-1 pb-1">
         <Eyebrow index={index}>{label}</Eyebrow>
         {(count || action) && (
           <div className="flex items-center gap-6">

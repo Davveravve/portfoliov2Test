@@ -1081,6 +1081,25 @@ typecheck && pnpm test && pnpm test:e2e` before pushing (project rule), stop `pn
 
 ---
 
+## Appendix B — Deviations recorded after the implementation review
+
+An adversarial review (4 lenses, every finding verified by 2 skeptics) found places where the
+spec contradicted itself or the browser. These amendments are now part of the spec:
+
+| Where                         | Amendment                                                                                                                                                                                               | Why                                                                          |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| §4.6 `readout`, §6.1 hero 390 | Phone size is fluid: `clamp(1.375rem, 6.2vw, 1.75rem)`; stats cells use `pl-4/pr-4` below `sm`                                                                                                          | A 10-digit `2026.09.18` at 28px (165px) cannot fit half of a 343px container |
+| §5.11 mobile                  | Below `xs` (480px) the mobile mono line drops the decorative index: `2026.09.19 · HOLLOWDEEP`                                                                                                           | The index pushed the project name into an ellipsis at 375                    |
+| §5.11 hover                   | The title arrow is not rendered on touch devices (`@media (hover: hover)` only)                                                                                                                         | The invisible arrow still took width and broke titles early                  |
+| §5.11 row                     | The thumbnail cell is `pointer-events: none`                                                                                                                                                            | It sat above the row link overlay and swallowed clicks                       |
+| §5.10 feature                 | Home lead card is **not** `priority`; mobile ratio is 16:9 (lg 2:1); the md+ tech line wraps instead of truncating                                                                                      | Would compete with the LCP poster; silent `+N` loss                          |
+| §5.9 video                    | Video posters render as a `next/image` layer under a transparent `<video>`                                                                                                                              | Keeps the optimised, preloaded poster as the LCP                             |
+| §5.13                         | Ambient loop gets a `Pause loop` toggle in the readout bar (md+); timecode reads `01:24` until playback starts; the timecode is `aria-hidden` and the total is in the button's name                     | WCAG 2.2.2; stable readout; non-chatty accessible name                       |
+| §5.2                          | While the menu is open, `main` and the footer are `inert`; the panel fades via `visibility`; the system line shows location + `LAST LOG`; without JS a `Menu` link to `#footer-nav` replaces the toggle | Focus containment; working fade; no-JS path                                  |
+| §5.3, §5.14, §5.6             | All always-visible links and controls are ≥ 44px tall (`min-h-11`)                                                                                                                                      | Tap-target rule in §5 conventions                                            |
+| §2 / GridOverlay              | `body` has no background (html's background paints the canvas)                                                                                                                                          | A body fill hid the fixed `-z-10` grid                                       |
+| §3.4                          | A non-breaking space precedes every em dash in two-tone copy                                                                                                                                            | Prevents the dash from starting a line                                       |
+
 ## Appendix A — Judge warnings and how the spec answers them
 
 | Warning (judges 1–3)                                                  | Answer in this spec                                                                                                                             |

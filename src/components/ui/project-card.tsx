@@ -48,6 +48,23 @@ function FlipIndex({ index }: { index: number }) {
   );
 }
 
+/** One mono line: status dot · status · engine · update count. Used by both card sizes. */
+function StatusLine({ project, className }: { project: ProjectCardData; className?: string }) {
+  const facts = [PROJECT_STATUS_LABEL[project.status], project.tech[0] ?? "—", `${pad(project.updateCount, 3)} upd`];
+  return (
+    <p className={cn("flex flex-wrap items-center gap-x-2 gap-y-1 label text-fg-muted", className)}>
+      <span aria-hidden className={cn("size-1.5 shrink-0 rounded-full", dot[project.status])} />
+      {/* Wraps between facts on narrow screens rather than cutting data off. */}
+      {facts.map((fact, i) => (
+        <span key={i} className="whitespace-nowrap">
+          {i > 0 && <span aria-hidden>· </span>}
+          {fact}
+        </span>
+      ))}
+    </p>
+  );
+}
+
 function techLine(tech: string[]) {
   const shown = tech.slice(0, 3);
   const rest = tech.length - shown.length;
@@ -81,25 +98,19 @@ export function ProjectCard({
   if (feature) {
     return (
       <article className={cn("group relative", className)}>
-        <MediaFrame
-          media={project.cover}
-          ratio="4/3"
-          className="sm:aspect-[16/9] lg:aspect-[2/1]"
-          sizes={sizes}
-          priority={priority}
-        />
+        <MediaFrame media={project.cover} ratio="16/9" className="lg:aspect-[2/1]" sizes={sizes} priority={priority} />
         <div className="mt-4 grid grid-cols-[2.5rem_1fr] gap-x-4 gap-y-4 border-t border-line pt-4 md:grid-cols-12 md:gap-x-6">
           <div className="md:col-span-1">
             <FlipIndex index={index} />
           </div>
-          <div className="md:col-span-6">
+          <div className="min-w-0 md:col-span-6">
             <H className="headline text-display-md">{link}</H>
             <p className="mt-1.5 max-w-[44ch] text-body text-fg-muted">{project.tagline}</p>
+            <StatusLine project={project} className="mt-3 md:hidden" />
           </div>
-          <p className="hidden truncate label text-fg-muted md:col-span-3 md:block md:pt-1.5">
-            {techLine(project.tech)}
-          </p>
-          <div className="col-start-2 flex items-center gap-4 label text-fg-muted md:col-span-2 md:flex-col md:items-end md:gap-2 md:pt-1.5">
+          {/* md+: the full tech list may wrap to a second line rather than silently drop "+N". */}
+          <p className="hidden label text-fg-muted md:col-span-3 md:block md:pt-1.5">{techLine(project.tech)}</p>
+          <div className="hidden label text-fg-muted md:col-span-2 md:flex md:flex-col md:items-end md:gap-2 md:pt-1.5">
             <StatusBadge status={project.status} variant="mono" />
             <span>{pad(project.updateCount, 3)} upd</span>
           </div>
@@ -116,12 +127,7 @@ export function ProjectCard({
         <div className="min-w-0">
           <H className="headline text-display-sm">{link}</H>
           <p className="mt-1.5 text-body text-fg-muted">{project.tagline}</p>
-          <p className="mt-3 flex items-center gap-2 truncate label text-fg-muted">
-            <span aria-hidden className={cn("size-1.5 shrink-0 rounded-full", dot[project.status])} />
-            <span className="truncate">
-              {PROJECT_STATUS_LABEL[project.status]} · {project.tech[0] ?? "—"} · {pad(project.updateCount, 3)} upd
-            </span>
-          </p>
+          <StatusLine project={project} className="mt-3" />
         </div>
       </div>
     </article>

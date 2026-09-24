@@ -183,11 +183,16 @@ export default async function DesignPage() {
         <div className="grid gap-8 md:grid-cols-2">
           <MediaFrame
             media={sample?.cover ?? null}
-            sizes="(min-width: 768px) 40vw, 100vw"
+            sizes="(min-width: 1440px) 497px, (min-width: 1024px) 37vw, (min-width: 768px) 50vw, 100vw"
             frame={1}
             readout={{ left: <span className="truncate">{sample?.title ?? "Sample"}, cover</span> }}
           />
-          <MediaFrame media={null} sizes="50vw" ratio="4/3" readout={{ left: "Empty state", right: null }} />
+          <MediaFrame
+            media={null}
+            sizes="(min-width: 1440px) 497px, (min-width: 768px) 50vw, 100vw"
+            ratio="4/3"
+            readout={{ left: "Empty state", right: null }}
+          />
         </div>
       </Block>
 
@@ -195,9 +200,20 @@ export default async function DesignPage() {
         <Block title="Project card">
           <div className="grid gap-8 md:grid-cols-2">
             <div className="md:col-span-2">
-              <ProjectCard size="feature" index={1} project={sample} sizes="(min-width: 1024px) 66vw, 100vw" />
+              <ProjectCard
+                size="feature"
+                index={1}
+                project={sample}
+                sizes="(min-width: 1440px) 1026px, (min-width: 1024px) 75vw, 100vw"
+              />
             </div>
-            {projects[1] && <ProjectCard index={2} project={projects[1]} sizes="(min-width: 1024px) 33vw, 100vw" />}
+            {projects[1] && (
+              <ProjectCard
+                index={2}
+                project={projects[1]}
+                sizes="(min-width: 1440px) 497px, (min-width: 1024px) 37vw, (min-width: 768px) 50vw, 100vw"
+              />
+            )}
           </div>
         </Block>
       )}

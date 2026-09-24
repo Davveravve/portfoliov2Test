@@ -13,6 +13,10 @@ type Props = {
   sizes: string;
   priority?: boolean;
   ambient?: boolean;
+  /** Stops an ambient loop (user control). */
+  paused?: boolean;
+  /** Native video controls; defaults to `!ambient`. */
+  controls?: boolean;
   /** Full-bleed: no side ring, 1px rules top and bottom. The readout bar stays on the grid. */
   bleed?: boolean;
   /** Caption/controls rendered UNDER the frame, never on it. `right` defaults to the asset dimensions. */
@@ -34,6 +38,8 @@ export function MediaFrame({
   sizes,
   priority,
   ambient,
+  paused,
+  controls,
   bleed,
   readout,
   frame,
@@ -54,10 +60,34 @@ export function MediaFrame({
     >
       {media?.kind === "video" ? (
         <>
-          <LazyVideo src={media.url} poster={media.posterUrl} label={media.alt} ambient={ambient} ref={videoRef} />
+          {/* The poster is an optimised, preloadable <Image> (the LCP candidate);
+              the video sits on top and stays transparent until it has frames. */}
+          {media.posterUrl && (
+            <Image
+              src={media.posterUrl}
+              alt=""
+              fill
+              sizes={sizes}
+              priority={priority}
+              fetchPriority={priority ? "high" : undefined}
+              placeholder={media.blurDataUrl ? "blur" : "empty"}
+              blurDataURL={media.blurDataUrl ?? undefined}
+              className="object-cover"
+            />
+          )}
+          <LazyVideo
+            src={media.url}
+            poster={null}
+            label={media.alt}
+            ambient={ambient}
+            paused={paused}
+            controls={controls}
+            ref={videoRef}
+            className="absolute inset-0"
+          />
           <noscript>
             <video
-              className="size-full object-cover"
+              className="absolute inset-0 size-full object-cover"
               controls
               preload="none"
               poster={media.posterUrl ?? undefined}

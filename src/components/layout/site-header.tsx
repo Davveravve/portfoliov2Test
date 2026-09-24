@@ -2,16 +2,18 @@ import Link from "next/link";
 import { ButtonLink } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
 import { site } from "@/config/site";
+import { getLastLog } from "@/lib/projects/last-log";
 import { MobileNav } from "./mobile-nav";
 import { NavLinks } from "./nav-links";
 
 /** Opaque, static header. The active-nav underline sits exactly on its bottom rule. */
-export function SiteHeader() {
+export async function SiteHeader() {
+  const lastLog = await getLastLog();
   const name = site.name.length > 16 ? site.shortName : site.name;
   return (
     <header className="sticky top-0 z-50 border-b border-line bg-bg">
       <Container className="flex h-(--header-h) items-center justify-between gap-6">
-        <Link href="/" className="flex items-center gap-2.5" aria-label={`${site.name} — home`}>
+        <Link href="/" className="flex min-h-11 items-center gap-2.5" aria-label={`${site.name} — home`}>
           <span aria-hidden className="led" />
           <span className="text-ui text-fg md:hidden">{name}</span>
           <span className="hidden text-ui text-fg md:inline">{site.name}</span>
@@ -29,7 +31,7 @@ export function SiteHeader() {
           </ButtonLink>
         </div>
 
-        <MobileNav items={site.nav} />
+        <MobileNav items={site.nav} lastLog={lastLog} />
       </Container>
     </header>
   );

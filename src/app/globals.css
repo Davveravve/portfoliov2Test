@@ -116,7 +116,8 @@
 
   body {
     min-height: 100dvh;
-    background: var(--color-bg);
+    /* No background here: html's background propagates to the canvas, and a
+       body fill would paint over the fixed -z-10 GridOverlay. */
     font-size: var(--text-body);
     line-height: var(--text-body--line-height);
   }
@@ -181,7 +182,8 @@
 /* Stats cluster numerals. */
 @utility readout {
   font-family: var(--font-mono);
-  font-size: var(--text-readout);
+  /* Fluid on phones so a 10-digit date fits half of a 343px container. */
+  font-size: clamp(1.375rem, 6.2vw, var(--text-readout));
   line-height: 1;
   letter-spacing: var(--text-readout--letter-spacing);
   font-weight: 500;
@@ -304,6 +306,16 @@
 .js [data-reveal]:not([data-revealed]) .rule-caps::before,
 .js [data-reveal]:not([data-revealed]) .rule-caps::after {
   opacity: 0;
+}
+
+/* Log rows both reveal and fade their hover tray; one declaration keeps both
+   (the reveal rule would otherwise override transition-colors). */
+.js .log-row[data-reveal] {
+  transition:
+    opacity 500ms var(--ease-out),
+    transform 500ms var(--ease-out),
+    background-color 150ms var(--ease-out);
+  transition-delay: var(--reveal-delay, 0ms), var(--reveal-delay, 0ms), 0ms;
 }
 
 /* The devlog rail draws itself as rows enter the viewport. CSS only; where

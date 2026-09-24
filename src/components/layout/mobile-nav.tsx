@@ -8,11 +8,16 @@ import { ArrowUpRight, Close, Menu } from "@/components/ui/icons";
 import { site } from "@/config/site";
 import { cn } from "@/lib/cn";
 import { pad } from "@/lib/format";
+import type { LastLog } from "@/lib/projects/last-log";
 
 type Item = { href: string; label: string };
 
-/** Full-screen menu for small screens. Escape closes, focus returns to the toggle. */
-export function MobileNav({ items }: { items: readonly Item[] }) {
+/**
+ * Full-screen menu for small screens. While open, everything behind it is
+ * `inert`; Escape closes and returns focus to the toggle. Without JS the
+ * toggle is replaced by a plain link to the footer navigation.
+ */
+export function MobileNav({ items, lastLog }: { items: readonly Item[]; lastLog: LastLog | null }) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
   const panelId = useId();
@@ -35,8 +40,14 @@ export function MobileNav({ items }: { items: readonly Item[] }) {
 
   useEffect(() => {
     if (!open) return;
-    const prev = document.documentElement.style.overflow;
-    document.documentElement.style.overflow = "hidden";
+    const root = document.documentElement;
+    const prev = root.style.overflow;
+    root.style.overflow = "hidden";
+    // Keep keyboard and screen-reader focus inside the menu + header.
+    const behind = [document.getElementById("main"), document.querySelector("body > footer")].filter(
+      (el): el is HTMLElement => el instanceof HTMLElement,
+    );
+    behind.forEach((el) => el.setAttribute("inert", ""));
     firstLinkRef.current?.focus();
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
@@ -46,7 +57,8 @@ export function MobileNav({ items }: { items: readonly Item[] }) {
     };
     window.addEventListener("keydown", onKey);
     return () => {
-      document.documentElement.style.overflow = prev;
+      root.style.overflow = prev;
+      behind.forEach((el) => el.removeAttribute("inert"));
       window.removeEventListener("keydown", onKey);
     };
   }, [open]);
@@ -55,13 +67,20 @@ export function MobileNav({ items }: { items: readonly Item[] }) {
 
   return (
     <div className="md:hidden">
+      <noscript>
+        <style>{`[data-menu-toggle]{display:none}`}</style>
+        <a href="#footer-nav" className="inline-flex h-11 items-center text-ui text-fg-muted">
+          Menu
+        </a>
+      </noscript>
       <button
         ref={toggleRef}
         type="button"
+        data-menu-toggle
         aria-expanded={open}
         aria-controls={panelId}
         onClick={() => setOpen((o) => !o)}
-        className="-mr-2 inline-flex size-10 items-center justify-center rounded-xs text-fg"
+        className="-mr-2.5 inline-flex size-11 items-center justify-center rounded-xs text-fg"
       >
         <span className="sr-only">{open ? "Close menu" : "Open menu"}</span>
         {open ? <Close size={18} /> : <Menu size={18} />}
@@ -71,9 +90,10 @@ export function MobileNav({ items }: { items: readonly Item[] }) {
         createPortal(
           <div
             id={panelId}
-            hidden={!open}
+            aria-hidden={!open}
+            inert={!open}
             data-open={open || undefined}
-            className="fixed inset-x-0 top-(--header-h) bottom-0 z-40 bg-bg opacity-0 transition-opacity duration-150 ease-out data-open:opacity-100 md:hidden"
+            className="invisible fixed inset-x-0 top-(--header-h) bottom-0 z-40 bg-bg opacity-0 transition-[opacity,visibility] duration-150 ease-out data-open:visible data-open:opacity-100 data-open:transition-opacity md:hidden"
           >
             <nav
               aria-label="Mobile"
@@ -100,21 +120,21 @@ export function MobileNav({ items }: { items: readonly Item[] }) {
                 ))}
               </ul>
 
-              <div className="space-y-6 pt-10">
+              <div className="pt-10">
                 <a
                   href={`mailto:${site.email}`}
-                  className="font-mono text-[13px] text-fg-muted transition-colors hover:text-fg"
+                  className="inline-flex min-h-11 items-center font-mono text-[13px] text-fg-muted transition-colors hover:text-fg"
                 >
                   {site.email}
                 </a>
-                <ul className="flex flex-wrap gap-x-5 gap-y-2 label text-fg-muted">
+                <ul className="flex flex-wrap gap-x-6 label text-fg-muted">
                   {socials.map(([name, href]) => (
                     <li key={name}>
                       <a
                         href={href}
                         rel="me noopener"
                         target="_blank"
-                        className="inline-flex items-center gap-1 transition-colors hover:text-fg"
+                        className="inline-flex min-h-11 items-center gap-1 transition-colors hover:text-fg"
                       >
                         {name}
                         <ArrowUpRight size={11} />
@@ -123,9 +143,19 @@ export function MobileNav({ items }: { items: readonly Item[] }) {
                     </li>
                   ))}
                 </ul>
-                <p className="border-y border-line py-3 label text-fg-muted">
-                  {site.role} · {site.location}
-                </p>
+                {/* System line: true facts only. */}
+                <div className="mt-4 flex flex-wrap items-center justify-between gap-x-4 border-y border-line label text-fg-muted">
+                  <span className="py-3">{site.location}</span>
+                  {lastLog && (
+                    <Link
+                      href={lastLog.href}
+                      onClick={() => setOpen(false)}
+                      className="inline-flex min-h-11 items-center gap-1.5 transition-colors hover:text-fg"
+                    >
+                      Last log {lastLog.date} <span aria-hidden>→</span>
+                    </Link>
+                  )}
+                </div>
               </div>
             </nav>
           </div>,

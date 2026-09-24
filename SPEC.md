@@ -265,3 +265,30 @@ misaligned "All projects" link, small hero name on mobile.
 timeline (use `getProjectTimeline`; pinned slot, "N older updates — Load older" gap, origin anchor
 with "Project started"), post page (markdown + YouTube lite embed, prev/next via `neighbours`),
 about page. Add their pages to `tests/e2e/screens.spec.ts`.
+
+### Session 2 — Design direction "Ground Station" ✅
+
+**Done**
+
+- Owner asked for a cleaner, more futuristic, high-end look. Ran a judge panel: 4 independent
+  concepts (Ground Station, Monograph, Vitrine, Shutter) × 3 judges (creative director, front-end
+  lead, gamedev audience). Ground Station won on aggregate; the synthesis grafted the best ideas
+  from the others into the implementation-ready spec `docs/DESIGN.md`.
+- Implemented it end to end: new tokens, Geist Sans + Mono only, capped rails, full-bleed showreel
+  with readout bar, instrument cluster, flip-index cards, the devlog as a log with a marker rail,
+  opaque header, restyled menu/footer/404, `/design` reference.
+- Adversarial review (4 lenses, 50 findings, each verified by 2 skeptics → 40 confirmed, many
+  duplicates). All confirmed findings fixed; spec amendments recorded in `docs/DESIGN.md`
+  Appendix B (phone readout size, mobile log line, thumbnail click-through, menu `inert`, 44px
+  targets, grid overlay, no-JS menu, video poster as `next/image`, loop pause toggle).
+- New tests: format helpers (unit), phone overflow at 360/375/390, thumbnail click-through (e2e),
+  fold screenshots at 390 and 1440. 39 unit + 12 e2e green.
+
+**Open**
+
+- The devlog rail (`.log-row::before`, scroll-driven) does not appear in full-page screenshots
+  below the first viewport — expected, it renders in a live viewport.
+- Still placeholder owner details in `src/config/site.ts`; no real showreel yet.
+
+**Next session → Phase 2** (unchanged): projects index, project page + timeline, post page, about.
+Build every new page from `docs/DESIGN.md` §5–§6 (the timeline rail in §5.12 reuses the log row).

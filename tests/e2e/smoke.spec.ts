@@ -56,6 +56,34 @@ test.describe("layout shell", () => {
   });
 });
 
+test.describe("phone layouts", () => {
+  for (const width of [360, 375, 390]) {
+    test(`no horizontal overflow and stats fit @ ${width}`, async ({ page }) => {
+      await page.setViewportSize({ width, height: 800 });
+      await page.goto("/");
+      const pageOverflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+      expect(pageOverflow).toBeLessThanOrEqual(0);
+      const overflowing = await page
+        .locator("section dl dd")
+        .evaluateAll((els) => els.filter((el) => el.scrollWidth > el.clientWidth).map((el) => el.textContent));
+      expect(overflowing).toEqual([]);
+    });
+  }
+
+  test("devlog thumbnails open the post", async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto("/");
+    const row = page.locator("#latest li").first();
+    const href = await row.getByRole("link").getAttribute("href");
+    // The thumbnail ignores pointer events so the click lands on the row link overlay.
+    await row.scrollIntoViewIfNeeded();
+    const box = await row.locator("img").boundingBox();
+    expect(box).not.toBeNull();
+    await page.mouse.click(box!.x + box!.width / 2, box!.y + box!.height / 2);
+    await expect(page).toHaveURL(new RegExp(`${href}$`));
+  });
+});
+
 test.describe("media route", () => {
   test("serves seeded media with immutable caching", async ({ request }) => {
     // Seed keys are content-addressed, so discover one from the rendered page.

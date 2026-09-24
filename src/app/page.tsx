@@ -50,14 +50,20 @@ export default async function HomePage() {
         posterUrl: posterKey ? resolve(posterKey) : null,
       }
     : null;
+  // Without a showreel, the poster is the newest post cover (or the lead cover), named in the readout.
   const fallbackPost = latest.find((p) => p.cover) ?? null;
+  const fallback = fallbackPost?.cover
+    ? {
+        asset: fallbackPost.cover,
+        label: `${fallbackPost.project.title} / ${POST_TYPE_LABEL[fallbackPost.type]}: ${fallbackPost.title}`,
+      }
+    : lead?.cover
+      ? { asset: lead.cover, label: `${lead.title} / Project cover` }
+      : null;
   const poster = video?.posterUrl
     ? { ...video, kind: "image" as const, url: video.posterUrl, posterUrl: null }
-    : (fallbackPost?.cover ?? lead?.cover ?? null);
-  const posterLabel =
-    !video && fallbackPost
-      ? `${fallbackPost.project.title} / ${POST_TYPE_LABEL[fallbackPost.type]}: ${fallbackPost.title}`
-      : null;
+    : (fallback?.asset ?? null);
+  const posterLabel = video ? null : (fallback?.label ?? null);
 
   const stats = [
     ["Projects", pad(projectCount, 2)],
@@ -101,22 +107,22 @@ export default async function HomePage() {
         <Container className="mt-8 grid gap-x-6 gap-y-10 md:mt-10 md:grid-cols-12">
           <div className="md:col-span-6 lg:col-span-5">
             <p className="max-w-[44ch] text-body-lg text-fg-muted">{site.intro}</p>
-            <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-              <ButtonLink href="/projects" size="lg" trailingIcon={<ArrowRight />} className="h-12 sm:h-11">
+            <div className="mt-6 flex flex-col gap-3 md:flex-row md:flex-wrap">
+              <ButtonLink href="/projects" size="lg" trailingIcon={<ArrowRight />}>
                 View projects
               </ButtonLink>
-              <ButtonLink href="#latest" size="lg" variant="secondary" className="h-12 sm:h-11">
+              <ButtonLink href="#latest" size="lg" variant="secondary">
                 Read the devlog
               </ButtonLink>
             </div>
           </div>
 
-          <dl className="grid grid-cols-2 md:col-span-6 md:col-start-7 lg:col-span-5 lg:col-start-8">
+          <dl className="grid grid-cols-2 md:col-span-6 md:col-start-7">
             {stats.map(([k, v], i) => (
               <div
                 key={k}
                 className={[
-                  i % 2 === 1 ? "border-l border-line pl-6" : "pr-6",
+                  i % 2 === 1 ? "border-l border-line pl-4 sm:pl-6" : "pr-4 sm:pr-6",
                   i < 2 ? "border-b border-line pb-4" : "pt-4",
                 ].join(" ")}
               >
@@ -139,7 +145,7 @@ export default async function HomePage() {
             id="work-title"
             title="Projects, built in the open."
           />
-          <div className="mt-12 grid gap-x-6 gap-y-14 md:grid-cols-12 md:gap-y-16">
+          <div className="mt-12 grid grid-cols-1 gap-x-6 gap-y-14 md:grid-cols-12 md:gap-y-16">
             <Reveal className="md:col-span-12">
               <ProjectCard size="feature" index={1} project={lead} sizes="(min-width: 1440px) 1376px, 100vw" />
             </Reveal>
